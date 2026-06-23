@@ -35,18 +35,34 @@ export async function connectDatabase(uri = DEFAULT_MONGO_URI): Promise<void> {
 
 /** Drop obsolete unique indexes that break multiple pending invites (userId: null). */
 async function migrateLegacyIndexes(): Promise<void> {
-  const legacyIndexNames = ['projectId_1_userId_1', 'teamId_1_userId_1'];
+  const legacyIndexNames = new Set(['projectId_1_userId_1', 'teamId_1_userId_1']);
   for (const model of [ProjectMemberModel, TeamMemberModel]) {
     try {
-      const indexes = await model.collection.indexes();
-      for (const idx of indexes) {
-        if (idx.name && legacyIndexNames.includes(idx.name)) {
-          await model.collection.dropIndex(idx.name);
+      const collectionName = model.collection.collectionName;
+      const collections = await model.db.listCollections();
+      const exists = collections.some((c) => c.name === collectionName);
+
+      if (exists) {
+        const indexes = await model.collection.indexes();
+        for (const idx of indexes) {
+          if (idx.name && legacyIndexNames.has(idx.name)) {
+            await model.collection.dropIndex(idx.name);
+          }
         }
       }
+
       await model.syncIndexes();
     } catch (error) {
-      console.warn(`Index migration for ${model.modelName}:`, error);
+      const code = (error as { code?: number }).code;
+      // 26 = NamespaceNotFound — fresh database, syncIndexes will create collections
+      if (code !== 26) {
+        console.warn(`Index migration for ${model.modelName}:`, error);
+      }
+      try {
+        await model.syncIndexes();
+      } catch {
+        /* ignore on first-run race */
+      }
     }
   }
 }
@@ -197,8 +213,11 @@ export async function createRequestInCollection(
 // --- History Repository ---
 
 export async function addHistoryEntry(entry: Omit<HistoryEntry, 'id'>): Promise<HistoryEntry> {
+  if (!entry.url?.trim()) {
+    throw new Error('Cannot save history entry without a URL');
+  }
   const settings = await getSettings();
-  const doc = await HistoryModel.create(entry);
+  const doc = await HistoryModel.create({ ...entry, url: entry.url.trim() });
 
   const count = await HistoryModel.countDocuments();
   if (count > settings.maxHistorySize) {

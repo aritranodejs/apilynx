@@ -49,7 +49,6 @@ async function createWindow(): Promise<void> {
 
   if (isDev) {
     await mainWindow.loadURL('http://localhost:3000');
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
     await mainWindow.loadFile(path.join(__dirname, '../../out/index.html'));
   }

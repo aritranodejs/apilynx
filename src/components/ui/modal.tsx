@@ -15,9 +15,9 @@ interface ModalProps {
 }
 
 const sizeClasses = {
-  sm: 'max-w-md',
-  lg: 'max-w-5xl max-h-[90vh] flex flex-col',
-  full: 'max-w-[96vw] w-full max-h-[96vh] h-[96vh] flex flex-col',
+  sm: 'max-w-md max-h-[90vh]',
+  lg: 'max-w-5xl max-h-[90vh]',
+  full: 'max-w-[98vw] w-full h-[96vh] max-h-[96vh]',
 };
 
 export function Modal({ open, onClose, title, children, className, size = 'sm' }: ModalProps) {
@@ -33,17 +33,17 @@ export function Modal({ open, onClose, title, children, className, size = 'sm' }
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
       <div
         className={cn(
-          'relative z-10 w-full rounded-lg border af-border af-surface-2 shadow-xl',
+          'relative z-10 w-full rounded-xl border border-zinc-700 bg-zinc-900 shadow-2xl flex flex-col overflow-hidden',
           sizeClasses[size],
           className
         )}
       >
-        <div className="flex items-center justify-between border-b af-border px-4 py-3 shrink-0">
-          <h2 className="text-sm font-semibold af-text-primary">{title}</h2>
+        <div className="flex items-center justify-between border-b border-zinc-700 px-4 py-3 shrink-0 bg-zinc-900">
+          <h2 className="text-sm font-semibold text-zinc-100 truncate pr-4">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -52,7 +52,12 @@ export function Modal({ open, onClose, title, children, className, size = 'sm' }
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className={cn('p-4', (size === 'lg' || size === 'full') && 'flex-1 min-h-0 overflow-hidden p-0')}>
+        <div
+          className={cn(
+            'min-h-0',
+            size === 'sm' ? 'p-4 overflow-auto' : 'flex flex-1 flex-col overflow-hidden p-0'
+          )}
+        >
           {children}
         </div>
       </div>

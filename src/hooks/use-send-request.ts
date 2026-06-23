@@ -5,6 +5,7 @@ import { useTabsStore } from '@/stores/tabs-store';
 import { useEnvironmentStore } from '@/stores/environment-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { httpService, historyService, requestService } from '@/services/ipc';
+import { showError } from '@/stores/toast-store';
 import {
   applyAuthToHeaders,
   applyAuthToUrl,
@@ -66,6 +67,10 @@ export function useSendRequest() {
 
       let url = normalizeRequestUrl(substituteVariables(request.url, vars));
       url = buildUrlWithParams(url, substituteInPairs(request.params, vars));
+      if (!url.trim()) {
+        showError('Enter a request URL before sending');
+        return;
+      }
       url = applyAuthToUrl(url, {
         ...request.auth,
         bearerToken: request.auth.bearerToken

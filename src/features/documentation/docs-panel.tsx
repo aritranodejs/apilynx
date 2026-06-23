@@ -191,12 +191,14 @@ export function DocsPanel() {
         size="full"
       >
         {html ? (
-          <iframe
-            title="API Documentation full preview"
-            srcDoc={html}
-            className="w-full h-full min-h-0 border-0 bg-zinc-950"
-            sandbox="allow-same-origin"
-          />
+          <div className="flex flex-1 min-h-0 min-w-0 overflow-hidden">
+            <iframe
+              title="API Documentation full preview"
+              srcDoc={html}
+              className="w-full h-full min-h-0 min-w-0 flex-1 border-0 bg-zinc-950 block"
+              sandbox="allow-same-origin"
+            />
+          </div>
         ) : (
           <p className="p-8 text-center text-zinc-500">No documentation to preview</p>
         )}
