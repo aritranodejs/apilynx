@@ -17,8 +17,9 @@
 /.next/
 /out/
 
-# production
-/build
+# electron build output (generated — do not commit)
+/dist-electron/
+/release/
 
 # misc
 .DS_Store
@@ -30,7 +31,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files (secrets)
 .env*
 
 # vercel
@@ -39,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# keep app icons in build/ (committed for electron-builder)
+# /build is NOT ignored — icon.png and icon.ico are required for packaging

@@ -18,7 +18,7 @@ import { ProjectSelector } from '@/features/projects/project-selector';
 import { WorkspaceModal } from '@/features/projects/workspace-modal';
 import { SettingsPanel } from '@/features/settings/settings-panel';
 import { Modal } from '@/components/ui/modal';
-import { environmentService, settingsService, isElectronApp } from '@/services/ipc';
+import { environmentService, settingsService, isElectronApp, requestService } from '@/services/ipc';
 import { InvitationsModal } from '@/features/invitations/invitations-modal';
 import { DocsPanel } from '@/features/documentation/docs-panel';
 import { MockServerPanel } from '@/features/mock/mock-server-panel';
@@ -37,7 +37,6 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeft,
-  Zap,
   Users,
   LogIn,
   LogOut,
@@ -108,10 +107,20 @@ export function AppShell() {
   const updateTabRequest = useTabsStore((s) => s.updateTabRequest);
 
   const handleSaveExample = useCallback(
-    (body: string) => {
+    async (body: string) => {
       if (!activeTab) return;
+      const updated = { ...activeTab.request, exampleResponse: body };
       updateTabRequest(activeTab.id, { exampleResponse: body });
-      showSuccess('Example response saved — use Docs tab to edit');
+      if (updated.collectionId) {
+        try {
+          await requestService.save(updated);
+          showSuccess('Example response saved to collection');
+        } catch (e) {
+          showError(e instanceof Error ? e.message : 'Failed to save example');
+        }
+      } else {
+        showSuccess('Example saved on tab — save to a collection to persist');
+      }
     },
     [activeTab, updateTabRequest]
   );
@@ -158,7 +167,7 @@ export function AppShell() {
   if (!isReady) {
     return (
       <div className="flex h-screen items-center justify-center bg-zinc-950 text-zinc-400">
-        Loading ReqForge...
+        Loading Apilynx...
       </div>
     );
   }
@@ -169,12 +178,12 @@ export function AppShell() {
         <div className="shrink-0 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
           Browser mode — CORS applies. Run{' '}
           <code className="rounded bg-zinc-800 px-1">npm run electron:dev</code> for full desktop
-          features with ReqForge.
+          features with Apilynx.
         </div>
       )}
       <header className="flex items-center gap-3 border-b af-border px-4 py-2 shrink-0 af-surface-2">
-        <Zap className="h-5 w-5 text-orange-500" />
-        <span className="font-semibold text-sm">ReqForge</span>
+        <img src="/icon.png" alt="" className="h-6 w-6 rounded" />
+        <span className="font-semibold text-sm">Apilynx</span>
         <ProjectSelector onOpenSettings={() => setShowWorkspace(true)} />
         <EnvironmentSelector />
         <div className="ml-auto flex items-center gap-2">
@@ -276,7 +285,12 @@ export function AppShell() {
 
       <div className="flex flex-1 overflow-hidden">
         {!sidebarCollapsed && (
-          <div className="flex w-72 shrink-0 border-r border-zinc-800">
+          <div
+            className={cn(
+              'flex shrink-0 border-r border-zinc-800',
+              activeSidebarPanel === 'documentation' ? 'w-[22rem]' : 'w-80'
+            )}
+          >
             <div className="flex flex-col w-12 border-r border-zinc-800 bg-zinc-900/30">
               {sidebarItems.map((item) => (
                 <button

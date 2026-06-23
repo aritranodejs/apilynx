@@ -3,9 +3,11 @@ import {
   CollectionModel,
   EnvironmentModel,
   HistoryModel,
+  ProjectMemberModel,
   RequestModel,
   RequestTabModel,
   SettingsModel,
+  TeamMemberModel,
 } from '../models';
 import type {
   ApiRequest,
@@ -19,7 +21,7 @@ import { createDefaultRequest, generateId } from '@/lib/utils';
 import { clientOrMongoIdFilter } from '@/lib/mongo-id';
 
 const DEFAULT_MONGO_URI =
-  process.env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017/reqforge';
+  process.env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017/apilynx';
 
 let isConnected = false;
 
@@ -27,7 +29,26 @@ export async function connectDatabase(uri = DEFAULT_MONGO_URI): Promise<void> {
   if (isConnected) return;
   await mongoose.connect(uri);
   isConnected = true;
+  await migrateLegacyIndexes();
   await seedDefaults();
+}
+
+/** Drop obsolete unique indexes that break multiple pending invites (userId: null). */
+async function migrateLegacyIndexes(): Promise<void> {
+  const legacyIndexNames = ['projectId_1_userId_1', 'teamId_1_userId_1'];
+  for (const model of [ProjectMemberModel, TeamMemberModel]) {
+    try {
+      const indexes = await model.collection.indexes();
+      for (const idx of indexes) {
+        if (idx.name && legacyIndexNames.includes(idx.name)) {
+          await model.collection.dropIndex(idx.name);
+        }
+      }
+      await model.syncIndexes();
+    } catch (error) {
+      console.warn(`Index migration for ${model.modelName}:`, error);
+    }
+  }
 }
 
 async function seedDefaults(): Promise<void> {
@@ -42,21 +63,7 @@ async function seedDefaults(): Promise<void> {
     });
   }
 
-  const envCount = await EnvironmentModel.countDocuments();
-  if (envCount === 0) {
-    const defaults = ['Local', 'Development', 'Staging', 'Production'];
-    for (let i = 0; i < defaults.length; i++) {
-      await EnvironmentModel.create({
-        name: defaults[i],
-        isDefault: i === 0,
-        variables: [
-          { id: generateId(), key: 'BASE_URL', value: 'http://localhost:3000', enabled: true, secret: false },
-          { id: generateId(), key: 'TOKEN', value: '', enabled: true, secret: true },
-          { id: generateId(), key: 'USER_ID', value: '', enabled: true, secret: false },
-        ],
-      });
-    }
-  }
+  // Environments are created by the user — no seeded mock variables.
 }
 
 function toPlain<T>(doc: unknown): T {

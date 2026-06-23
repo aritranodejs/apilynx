@@ -29,11 +29,11 @@ function getAPI(): ElectronAPI {
   if (typeof window !== 'undefined' && window.electronAPI) {
     return window.electronAPI;
   }
-  throw new Error('Electron API not available. Run ReqForge as a desktop application.');
+  throw new Error('Electron API not available. Run Apilynx as a desktop application.');
 }
 
 // --- localStorage-backed mock for browser-only dev ---
-const MOCK_STORAGE_KEY = 'reqforge-mock-db';
+const MOCK_STORAGE_KEY = 'apilynx-mock-db';
 
 interface MockUser extends User {
   passwordHash: string;
@@ -60,6 +60,12 @@ function loadMockDB(): MockDB {
   try {
     const raw = localStorage.getItem(MOCK_STORAGE_KEY);
     if (raw) return JSON.parse(raw) as MockDB;
+    const legacy = localStorage.getItem('reqforge-mock-db');
+    if (legacy) {
+      localStorage.setItem(MOCK_STORAGE_KEY, legacy);
+      localStorage.removeItem('reqforge-mock-db');
+      return JSON.parse(legacy) as MockDB;
+    }
   } catch {
     /* use defaults */
   }
@@ -91,7 +97,6 @@ function linkMockInvites(db: MockDB, userId: string, email: string, name: string
 }
 
 function getDefaultMockDB(): MockDB {
-  const now = new Date().toISOString();
   return {
     settings: {
       id: '1',
@@ -110,18 +115,7 @@ function getDefaultMockDB(): MockDB {
     teamMembers: [],
     projectMembers: [],
     projects: [],
-    environments: ['Local', 'Development', 'Staging', 'Production'].map((name, i) => ({
-      id: generateId(),
-      name,
-      isDefault: i === 0,
-      variables: [
-        { id: generateId(), key: 'BASE_URL', value: 'http://localhost:3000', enabled: true, secret: false },
-        { id: generateId(), key: 'TOKEN', value: '', enabled: true, secret: true },
-        { id: generateId(), key: 'USER_ID', value: '', enabled: true, secret: false },
-      ],
-      createdAt: now,
-      updatedAt: now,
-    })),
+    environments: [],
   };
 }
 

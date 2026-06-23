@@ -28,6 +28,6 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         return projects.find((p) => p.id === activeProjectId);
       },
     }),
-    { name: 'reqforge-workspace' }
+    { name: 'apilynx-workspace' }
   )
 );

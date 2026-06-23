@@ -28,7 +28,7 @@ const HEADER_SUGGESTIONS = [
   { key: 'Content-Type', value: 'application/json' },
   { key: 'Accept', value: 'application/json' },
   { key: 'Authorization', value: 'Bearer ' },
-  { key: 'User-Agent', value: 'ReqForge/1.0' },
+  { key: 'User-Agent', value: 'Apilynx/1.0' },
   { key: 'Cache-Control', value: 'no-cache' },
 ];
 

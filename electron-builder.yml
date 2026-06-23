@@ -1,5 +1,5 @@
-appId: com.reqforge.app
-productName: ReqForge
+appId: com.apilynx.app
+productName: Apilynx
 copyright: Copyright © 2026 Aritra Dutta
 
 directories:
@@ -16,27 +16,28 @@ extraMetadata:
 
 mac:
   category: public.app-category.developer-tools
+  icon: build/icon.png
   target:
     - target: dmg
       arch:
         - x64
         - arm64
-  icon: build/icon.icns
 
 win:
+  icon: build/icon.ico
   target:
     - target: nsis
       arch:
         - x64
-  icon: build/icon.ico
 
 linux:
+  icon: build/icon.png
   target:
     - target: AppImage
       arch:
         - x64
   category: Development
-  icon: build/icon.png
+  maintainer: Aritra Dutta <aritra@apilynx.app>
 
 nsis:
   oneClick: false

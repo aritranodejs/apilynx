@@ -240,7 +240,7 @@ export async function addTeamMember(
   const doc = await TeamMemberModel.create({
     clientId: generateId(),
     teamId,
-    userId: user?.clientId as string | undefined,
+    ...(user?.clientId ? { userId: user.clientId } : {}),
     email: normalizedEmail,
     name: user?.name ?? normalizedEmail.split('@')[0],
     role,
@@ -344,7 +344,7 @@ export async function addProjectMember(
   const doc = await ProjectMemberModel.create({
     clientId: generateId(),
     projectId: project.clientId,
-    userId: user?.clientId as string | undefined,
+    ...(user?.clientId ? { userId: user.clientId } : {}),
     email: normalizedEmail,
     name: user?.name ?? normalizedEmail.split('@')[0],
     role,

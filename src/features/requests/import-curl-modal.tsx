@@ -43,7 +43,7 @@ export function ImportCurlModal({ open, onClose, onImport }: ImportCurlModalProp
   return (
     <Modal open={open} onClose={onClose} title="Import cURL" className="max-w-2xl">
       <p className="mb-3 text-xs text-zinc-500">
-        Paste a cURL command from browser DevTools, Postman, or terminal. ReqForge will structure
+        Paste a cURL command from browser DevTools, Postman, or terminal. Apilynx will structure
         method, URL, headers, and body automatically.
       </p>
       <textarea

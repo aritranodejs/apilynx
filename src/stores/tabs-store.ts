@@ -99,7 +99,7 @@ export const useTabsStore = create<TabsState>()(
       },
     }),
     {
-      name: 'reqforge-tabs',
+      name: 'apilynx-tabs',
       skipHydration: true,
       partialize: (state) => ({
         tabs: state.tabs.map(({ id, request }) => ({ id, request, isLoading: false })),

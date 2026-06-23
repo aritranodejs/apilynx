@@ -1,10 +1,10 @@
-# ReqForge
+# Apilynx
 
 A modern, cross-platform desktop API client — a production-ready alternative to Postman, Insomnia, and Bruno.
 
 **Developed By Aritra Dutta**
 
-![ReqForge](https://img.shields.io/badge/Next.js-16-black) ![React](https://img.shields.io/badge/React-19-blue) ![Electron](https://img.shields.io/badge/Electron-33-47848F) ![MongoDB](https://img.shields.io/badge/MongoDB-8-green)
+![Apilynx](https://img.shields.io/badge/Apilynx-API%20Client-orange) ![Next.js](https://img.shields.io/badge/Next.js-16-black) ![React](https://img.shields.io/badge/React-19-blue) ![Electron](https://img.shields.io/badge/Electron-33-47848F) ![MongoDB](https://img.shields.io/badge/MongoDB-8-green)
 
 ## Features
 
@@ -86,7 +86,7 @@ npm install
 
 # Configure MongoDB
 cp .env.example .env
-# Edit MONGODB_URI if needed (default: mongodb://127.0.0.1:27017/reqforge)
+# Edit MONGODB_URI if needed (default: mongodb://127.0.0.1:27017/apilynx)
 
 # Start MongoDB (if local)
 sudo systemctl start mongod   # Linux
@@ -167,7 +167,7 @@ Default environments seeded on first run: **Local**, **Development**, **Staging*
 
 | Variable      | Default                              | Description        |
 |---------------|--------------------------------------|--------------------|
-| `MONGODB_URI` | `mongodb://127.0.0.1:27017/reqforge` | MongoDB connection |
+| `MONGODB_URI` | `mongodb://127.0.0.1:27017/apilynx` | MongoDB connection |
 
 ## Security
 
@@ -202,10 +202,13 @@ Default environments seeded on first run: **Local**, **Development**, **Staging*
 | `npm run electron:compile` | Compile Electron TypeScript     |
 | `npm run electron:build` | Build UI + Electron              |
 | `npm run electron:start` | Run production desktop app       |
+| `npm run icons`     | Regenerate app icons (PNG/ICO)       |
 | `npm run dist`      | Package installers                 |
+| `npm run dist:win`  | Windows `.exe` installer           |
+| `npm run dist:mac`  | macOS `.dmg`                       |
+| `npm run dist:linux`| Linux AppImage                     |
 | `npm test`          | Run test suite                     |
 
 ## License
 
-MIT — © Aritra Dutta
-# req-forge
+MIT — © Aritra Dutta · Apilynx

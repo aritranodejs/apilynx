@@ -15,6 +15,8 @@ import { stopMockServer } from './mock-server';
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
+const appIconPath = path.join(__dirname, '../../build/icon.png');
+
 let mainWindow: BrowserWindow | null = null;
 
 async function createWindow(): Promise<void> {
@@ -23,7 +25,8 @@ async function createWindow(): Promise<void> {
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    title: 'ReqForge',
+    title: 'Apilynx',
+    icon: appIconPath,
     backgroundColor: '#09090b',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -76,7 +79,7 @@ app.whenReady().then(async () => {
     registerIpcHandlers();
     await createWindow();
   } catch (error) {
-    console.error('Failed to start ReqForge:', error);
+    console.error('Failed to start Apilynx:', error);
     app.quit();
   }
 

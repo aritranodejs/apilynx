@@ -21,6 +21,6 @@ export const useAuthStore = create<AuthState>()(
       clearAuth: () => set({ user: null, token: null, isLoading: false }),
       setLoading: (isLoading) => set({ isLoading }),
     }),
-    { name: 'reqforge-auth' }
+    { name: 'apilynx-auth' }
   )
 );

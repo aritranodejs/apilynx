@@ -1,8 +1,11 @@
 {
-  "name": "reqforge",
+  "name": "apilynx",
   "version": "1.0.0",
-  "description": "ReqForge — Modern API testing desktop application",
-  "author": "Aritra Dutta",
+  "description": "Apilynx — Modern API testing desktop application",
+  "author": {
+    "name": "Aritra Dutta",
+    "email": "aritra@apilynx.app"
+  },
   "license": "MIT",
   "private": true,
   "main": "dist-electron/electron/main.js",
@@ -12,8 +15,10 @@
     "start": "next start",
     "lint": "eslint",
     "electron:compile": "tsc -p electron/tsconfig.json && tsc-alias -p electron/tsconfig.json -f 'dist-electron/src/**/*.js' && node scripts/fix-electron-imports.js",
-    "electron:dev": "npm run electron:compile && cross-env NODE_ENV=development concurrently -k \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build": "npm run build && npm run electron:compile",
+    "icons": "python3 scripts/generate-icons.py",
+    "electron:dev": "cross-env NODE_ENV=development concurrently -k -n compile,next,electron -c yellow,cyan,magenta \"npm run electron:compile\" \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:dev:fast": "cross-env NODE_ENV=development concurrently -k \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:build": "npm run icons && npm run build && npm run electron:compile",
     "electron:start": "cross-env NODE_ENV=production electron .",
     "dist": "npm run electron:build && electron-builder --config electron-builder.yml",
     "dist:win": "npm run electron:build && electron-builder --win --config electron-builder.yml",

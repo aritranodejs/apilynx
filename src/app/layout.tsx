@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ReqForge',
+  title: 'Apilynx',
   description: 'Modern API testing desktop application by Aritra Dutta',
+  icons: { icon: '/icon.png' },
 };
 
 export default function RootLayout({
