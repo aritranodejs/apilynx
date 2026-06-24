@@ -20,14 +20,32 @@ import type {
 import { createDefaultRequest, generateId } from '@/lib/utils';
 import { clientOrMongoIdFilter } from '@/lib/mongo-id';
 
-const DEFAULT_MONGO_URI =
-  process.env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017/apilynx';
+const LOCAL_MONGO_URI = 'mongodb://127.0.0.1:27017/apilynx';
+
+function resolveMongoUri(): string {
+  const uri = process.env.MONGODB_URI?.trim();
+  if (uri) return uri;
+
+  const isDev = process.env.NODE_ENV === 'development';
+  if (!isDev) {
+    throw new Error(
+      'MONGODB_URI is missing from .env. The installer was built without a cloud database URL. ' +
+        'Rebuild the .deb with MONGODB_URI set, or add it to ~/.config/Apilynx/.env'
+    );
+  }
+
+  return LOCAL_MONGO_URI;
+}
 
 let isConnected = false;
 
-export async function connectDatabase(uri = DEFAULT_MONGO_URI): Promise<void> {
+export async function connectDatabase(uri?: string): Promise<void> {
   if (isConnected) return;
-  await mongoose.connect(uri);
+  const mongoUri = uri ?? resolveMongoUri();
+  await mongoose.connect(mongoUri, {
+    serverSelectionTimeoutMS: 15_000,
+    connectTimeoutMS: 15_000,
+  });
   isConnected = true;
   await migrateLegacyIndexes();
   await seedDefaults();

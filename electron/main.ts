@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { loadAppEnv } from './load-env';
 import {
   dbHandlers,
@@ -81,11 +81,45 @@ function registerIpcHandlers(): void {
   ipcMain.handle('app:getPlatform', () => process.platform);
 }
 
+function formatStartupError(error: unknown, envPath: string | null): string {
+  const message = error instanceof Error ? error.message : String(error);
+  const lines = [
+    message,
+    '',
+    'Common fixes:',
+    '• Ensure this PC has internet access',
+    '• MongoDB Atlas → Network Access → add this machine\'s IP (or 0.0.0.0/0)',
+    '• Confirm ~/.config/Apilynx/.env or bundled config has MONGODB_URI',
+  ];
+  if (envPath) {
+    lines.push(`• Config loaded from: ${envPath}`);
+  } else {
+    lines.push('• No .env found — app tried default local MongoDB');
+  }
+  lines.push('', 'Debug: run in terminal → apilynx --enable-logging');
+  return lines.join('\n');
+}
+
+function writeStartupLog(error: unknown, envPath: string | null): string {
+  const logPath = path.join(app.getPath('userData'), 'startup-error.log');
+  const body = [
+    `Time: ${new Date().toISOString()}`,
+    `Env: ${envPath ?? 'not found'}`,
+    `Mongo URI set: ${Boolean(process.env.MONGODB_URI)}`,
+    '',
+    error instanceof Error ? `${error.name}: ${error.message}\n${error.stack ?? ''}` : String(error),
+  ].join('\n');
+  fs.writeFileSync(logPath, body);
+  return logPath;
+}
+
 app.whenReady().then(async () => {
+  let envPath: string | null = null;
   try {
-    const envPath = loadAppEnv();
+    envPath = loadAppEnv();
     if (envPath) {
       console.log(`Apilynx: loaded config from ${envPath}`);
+      console.log(`Apilynx: MONGODB_URI ${process.env.MONGODB_URI ? 'is set' : 'is NOT set'}`);
     } else {
       console.warn('Apilynx: no .env found — using defaults / environment variables');
     }
@@ -95,6 +129,11 @@ app.whenReady().then(async () => {
     await createWindow();
   } catch (error) {
     console.error('Failed to start Apilynx:', error);
+    const logPath = writeStartupLog(error, envPath);
+    dialog.showErrorBox(
+      'Apilynx could not start',
+      `${formatStartupError(error, envPath)}\n\nLog saved: ${logPath}`
+    );
     app.quit();
   }
 
