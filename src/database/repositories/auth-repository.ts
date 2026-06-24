@@ -7,7 +7,7 @@ import {
   TeamModel,
   UserModel,
 } from '../models';
-import type { AuthResponse, ChangePasswordPayload, LoginPayload, Project, ProjectInvite, ProjectMember, RegisterPayload, Team, TeamInvite, TeamMember, TeamRole, UpdateProfilePayload, UpdateProjectPayload, User } from '@/types';
+import type { AuthResponse, ChangePasswordPayload, GoogleLoginPayload, LoginPayload, Project, ProjectInvite, ProjectMember, RegisterPayload, Team, TeamInvite, TeamMember, TeamRole, UpdateProfilePayload, UpdateProjectPayload, User } from '@/types/auth';
 import { generateId } from '@/lib/utils';
 import { clientOrMongoIdFilter } from '@/lib/mongo-id';
 
@@ -20,11 +20,24 @@ function toPlain<T>(doc: unknown): T {
     typeof (doc as { toObject?: () => Record<string, unknown> }).toObject === 'function'
       ? (doc as { toObject: () => Record<string, unknown> }).toObject()
       : (doc as Record<string, unknown>);
-  const { _id, __v, clientId, passwordHash, ...rest } = obj;
+  const { _id, __v, clientId, passwordHash, googleId: _googleId, ...rest } = obj;
   const result = { ...rest, id: (clientId as string) || String(_id) } as Record<string, unknown>;
   if (result.status === undefined) result.status = 'active';
   if (result.status === 'pending') result.status = 'invited';
   return result as T;
+}
+
+function toUser(doc: unknown): User {
+  const obj =
+    typeof (doc as { toObject?: () => Record<string, unknown> }).toObject === 'function'
+      ? (doc as { toObject: () => Record<string, unknown> }).toObject()
+      : (doc as Record<string, unknown>);
+  const { _id, __v, clientId, passwordHash, googleId, ...rest } = obj;
+  return {
+    ...(rest as Omit<User, 'id' | 'hasPassword'>),
+    id: (clientId as string) || String(_id),
+    hasPassword: Boolean(passwordHash),
+  };
 }
 
 async function createSession(userId: string): Promise<string> {
@@ -50,7 +63,12 @@ async function linkInvitesToUser(userId: string, email: string, name: string): P
 
 export async function register(payload: RegisterPayload): Promise<AuthResponse> {
   const existing = await UserModel.findOne({ email: payload.email.toLowerCase() });
-  if (existing) throw new Error('Email already registered');
+  if (existing) {
+    if (!existing.passwordHash) {
+      throw new Error('This email is registered with Google sign-in. Continue with Google.');
+    }
+    throw new Error('Email already registered');
+  }
 
   const clientId = generateId();
   const passwordHash = await bcrypt.hash(payload.password, 12);
@@ -60,7 +78,7 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
     passwordHash,
     name: payload.name,
   });
-  const user = toPlain<User>(doc);
+  const user = toUser(doc);
   const token = await createSession(user.id);
 
   await createPersonalProject(user.id, user.name, user.email);
@@ -72,11 +90,57 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
   const doc = await UserModel.findOne({ email: payload.email.toLowerCase() });
   if (!doc) throw new Error('Invalid email or password');
+  if (!doc.passwordHash) {
+    throw new Error('This account uses Google sign-in. Continue with Google.');
+  }
 
   const valid = await bcrypt.compare(payload.password, doc.passwordHash);
   if (!valid) throw new Error('Invalid email or password');
 
-  const user = toPlain<User>(doc);
+  const user = toUser(doc);
+  const token = await createSession(user.id);
+  await linkInvitesToUser(user.id, user.email, user.name);
+  return { user, token };
+}
+
+export async function loginWithGoogle(payload: GoogleLoginPayload): Promise<AuthResponse> {
+  const email = payload.email.toLowerCase().trim();
+  if (!email || !payload.googleId) {
+    throw new Error('Invalid Google account details');
+  }
+
+  let doc = await UserModel.findOne({ googleId: payload.googleId });
+  if (!doc) {
+    doc = await UserModel.findOne({ email });
+    if (doc) {
+      if (doc.googleId && doc.googleId !== payload.googleId) {
+        throw new Error('This email is linked to a different Google account');
+      }
+      doc.googleId = payload.googleId;
+      if (payload.avatarUrl) doc.avatarUrl = payload.avatarUrl;
+      if (payload.name?.trim()) doc.name = payload.name.trim();
+      await doc.save();
+    } else {
+      const clientId = generateId();
+      doc = await UserModel.create({
+        clientId,
+        email,
+        googleId: payload.googleId,
+        name: payload.name.trim() || email.split('@')[0],
+        avatarUrl: payload.avatarUrl,
+      });
+      const user = toUser(doc);
+      const token = await createSession(user.id);
+      await createPersonalProject(user.id, user.name, user.email);
+      await linkInvitesToUser(user.id, user.email, user.name);
+      return { user, token };
+    }
+  } else if (payload.avatarUrl && !doc.avatarUrl) {
+    doc.avatarUrl = payload.avatarUrl;
+    await doc.save();
+  }
+
+  const user = toUser(doc);
   const token = await createSession(user.id);
   await linkInvitesToUser(user.id, user.email, user.name);
   return { user, token };
@@ -93,7 +157,7 @@ export async function getSessionUser(token: string): Promise<User | null> {
   const user = await UserModel.findOne({ clientId: session.userId });
   if (!user) return null;
   activeToken = token;
-  return toPlain<User>(user);
+  return toUser(user);
 }
 
 export async function createPersonalProject(
@@ -270,12 +334,22 @@ export async function updateProfile(payload: UpdateProfilePayload): Promise<User
     { new: true }
   );
   if (!doc) throw new Error('User not found');
-  return toPlain<User>(doc);
+  return toUser(doc);
 }
 
 export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
   const doc = await UserModel.findOne({ clientId: payload.userId });
   if (!doc) throw new Error('User not found');
+
+  if (!doc.passwordHash) {
+    if (!payload.newPassword || payload.newPassword.length < 6) {
+      throw new Error('New password must be at least 6 characters');
+    }
+    doc.passwordHash = await bcrypt.hash(payload.newPassword, 12);
+    await doc.save();
+    return;
+  }
+
   const valid = await bcrypt.compare(payload.currentPassword, doc.passwordHash);
   if (!valid) throw new Error('Current password is incorrect');
   doc.passwordHash = await bcrypt.hash(payload.newPassword, 12);

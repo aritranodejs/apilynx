@@ -59,6 +59,8 @@ export interface ElectronAPI {
   deleteEnvironment: (id: string) => Promise<boolean>;
   register: (payload: RegisterPayload) => Promise<AuthResponse>;
   login: (payload: LoginPayload) => Promise<AuthResponse>;
+  loginWithGoogle: () => Promise<AuthResponse>;
+  isGoogleConfigured: () => Promise<boolean>;
   logout: (token: string) => Promise<void>;
   getSession: (token: string) => Promise<User | null>;
   getProjects: (userId: string) => Promise<Project[]>;

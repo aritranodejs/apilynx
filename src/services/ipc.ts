@@ -36,7 +36,8 @@ function getAPI(): ElectronAPI {
 const MOCK_STORAGE_KEY = 'apilynx-mock-db';
 
 interface MockUser extends User {
-  passwordHash: string;
+  passwordHash?: string;
+  googleId?: string;
 }
 
 interface MockDB {
@@ -360,13 +361,16 @@ const mockAPI: ElectronAPI = {
     });
     linkMockInvites(db, user.id, user.email, user.name);
     saveMockDB(db);
-    const { passwordHash: _, ...safeUser } = user;
-    return { user: safeUser, token };
+    const { passwordHash: _, googleId: __, ...safeUser } = user;
+    return { user: { ...safeUser, hasPassword: Boolean(user.passwordHash) }, token };
   },
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
     const db = loadMockDB();
     const user = db.users.find((u) => u.email === payload.email.toLowerCase());
     if (!user) throw new Error('Invalid email or password');
+    if (!user.passwordHash) {
+      throw new Error('This account uses Google sign-in. Continue with Google.');
+    }
     const valid = await bcrypt.compare(payload.password, user.passwordHash);
     if (!valid) throw new Error('Invalid email or password');
     const token = generateId() + generateId();
@@ -375,9 +379,13 @@ const mockAPI: ElectronAPI = {
     db.sessions.push({ token, userId: user.id, expiresAt: expiresAt.toISOString() });
     linkMockInvites(db, user.id, user.email, user.name);
     saveMockDB(db);
-    const { passwordHash: _, ...safeUser } = user;
-    return { user: safeUser, token };
+    const { passwordHash: _, googleId: __, ...safeUser } = user;
+    return { user: { ...safeUser, hasPassword: true }, token };
   },
+  loginWithGoogle: async (): Promise<AuthResponse> => {
+    throw new Error('Google sign-in is only available in the Apilynx desktop app');
+  },
+  isGoogleConfigured: async (): Promise<boolean> => false,
   logout: async (token: string): Promise<void> => {
     const db = loadMockDB();
     db.sessions = db.sessions.filter((s) => s.token !== token);
@@ -391,8 +399,8 @@ const mockAPI: ElectronAPI = {
     if (!session) return null;
     const user = db.users.find((u) => u.id === session.userId);
     if (!user) return null;
-    const { passwordHash: _, ...safeUser } = user;
-    return safeUser;
+    const { passwordHash: _, googleId: __, ...safeUser } = user;
+    return { ...safeUser, hasPassword: Boolean(user.passwordHash) };
   },
   getProjects: async (userId: string): Promise<Project[]> => {
     const db = loadMockDB();
@@ -565,6 +573,14 @@ const mockAPI: ElectronAPI = {
     const db = loadMockDB();
     const user = db.users.find((u) => u.id === payload.userId);
     if (!user) throw new Error('User not found');
+    if (!user.passwordHash) {
+      if (!payload.newPassword || payload.newPassword.length < 6) {
+        throw new Error('New password must be at least 6 characters');
+      }
+      user.passwordHash = await bcrypt.hash(payload.newPassword, 10);
+      saveMockDB(db);
+      return;
+    }
     const valid = await bcrypt.compare(payload.currentPassword, user.passwordHash);
     if (!valid) throw new Error('Current password is incorrect');
     user.passwordHash = await bcrypt.hash(payload.newPassword, 10);

@@ -1,11 +1,11 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { EditorProps } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { cn } from '@/lib/utils';
 
-const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
+type MonacoComponent = React.ComponentType<EditorProps>;
 
 interface CodeEditorProps {
   value: string;
@@ -27,6 +27,24 @@ export function CodeEditor({
   onValidate,
 }: CodeEditorProps) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const [MonacoEditor, setMonacoEditor] = useState<MonacoComponent | null>(null);
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void import('@monaco-editor/react')
+      .then((mod) => {
+        if (!cancelled) setMonacoEditor(() => mod.default);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleMount = useCallback(
     (ed: editor.IStandaloneCodeEditor) => {
@@ -35,7 +53,15 @@ export function CodeEditor({
         const model = ed.getModel();
         if (model && onValidate) {
           const markers = editorRef.current
-            ? (window as unknown as { monaco: { editor: { getModelMarkers: (o: { resource: unknown }) => editor.IMarker[] } } }).monaco?.editor?.getModelMarkers({ resource: model.uri }) ?? []
+            ? (
+                window as unknown as {
+                  monaco: {
+                    editor: {
+                      getModelMarkers: (o: { resource: unknown }) => editor.IMarker[];
+                    };
+                  };
+                }
+              ).monaco?.editor?.getModelMarkers({ resource: model.uri }) ?? []
             : [];
           onValidate(markers);
         }
@@ -44,8 +70,35 @@ export function CodeEditor({
     [onValidate]
   );
 
+  const shellClass = cn('overflow-hidden rounded-md border border-zinc-700', className);
+
+  if (loadError) {
+    return (
+      <div className={shellClass} style={{ height }}>
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          readOnly={readOnly}
+          spellCheck={false}
+          className="h-full w-full resize-none bg-zinc-950 p-3 font-mono text-xs text-zinc-100 outline-none"
+        />
+      </div>
+    );
+  }
+
+  if (!MonacoEditor) {
+    return (
+      <div
+        className={cn(shellClass, 'flex items-center justify-center bg-zinc-950 text-xs text-zinc-500')}
+        style={{ height }}
+      >
+        Loading editor...
+      </div>
+    );
+  }
+
   return (
-    <div className={cn('overflow-hidden rounded-md border border-zinc-700', className)}>
+    <div className={shellClass}>
       <MonacoEditor
         height={height}
         language={language}

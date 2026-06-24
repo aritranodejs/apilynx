@@ -19,6 +19,8 @@ import { api } from './ipc';
 export const authService = {
   register: (payload: RegisterPayload): Promise<AuthResponse> => api().register(payload),
   login: (payload: LoginPayload): Promise<AuthResponse> => api().login(payload),
+  loginWithGoogle: (): Promise<AuthResponse> => api().loginWithGoogle(),
+  isGoogleConfigured: (): Promise<boolean> => api().isGoogleConfigured(),
   logout: (token: string): Promise<void> => api().logout(token),
   getSession: (token: string): Promise<User | null> => api().getSession(token),
   updateProfile: (payload: UpdateProfilePayload): Promise<User> => api().updateProfile(payload),

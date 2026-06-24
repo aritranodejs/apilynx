@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Apilynx',
   description: 'Modern API testing desktop application by Aritra Dutta',
-  icons: { icon: '/icon.png' },
+  icons: { icon: process.env.ELECTRON_BUILD === '1' ? './icon.png' : '/icon.png' },
 };
 
 export default function RootLayout({

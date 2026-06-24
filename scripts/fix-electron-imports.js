@@ -5,17 +5,18 @@
 const fs = require('fs');
 const path = require('path');
 
-const targets = [
-  path.join(__dirname, '../dist-electron/electron/main.js'),
-  path.join(__dirname, '../dist-electron/electron/preload.js'),
-];
+const electronDir = path.join(__dirname, '../dist-electron/electron');
+if (!fs.existsSync(electronDir)) {
+  process.exit(0);
+}
 
-for (const file of targets) {
-  if (!fs.existsSync(file)) continue;
-  const content = fs.readFileSync(file, 'utf8');
+for (const file of fs.readdirSync(electronDir)) {
+  if (!file.endsWith('.js')) continue;
+  const filePath = path.join(electronDir, file);
+  const content = fs.readFileSync(filePath, 'utf8');
   const fixed = content.replace(/require\("\.\.\/electron"\)/g, 'require("electron")');
   if (fixed !== content) {
-    fs.writeFileSync(file, fixed);
-    console.log(`Patched: ${file}`);
+    fs.writeFileSync(filePath, fixed);
+    console.log(`Patched: ${filePath}`);
   }
 }

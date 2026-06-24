@@ -1,9 +1,7 @@
+import * as fs from 'fs';
 import * as path from 'path';
-import { config } from 'dotenv';
-
-config({ path: path.join(__dirname, '../../.env') });
-
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { loadAppEnv } from './load-env';
 import {
   dbHandlers,
   handleCancelRequest,
@@ -15,7 +13,18 @@ import { stopMockServer } from './mock-server';
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
-const appIconPath = path.join(__dirname, '../../build/icon.png');
+function resolveAppIconPath(): string {
+  const candidates = [
+    path.join(app.getAppPath(), 'out', 'icon.png'),
+    path.join(app.getAppPath(), 'build', 'icon.png'),
+    path.join(__dirname, '../../build/icon.png'),
+    path.join(process.resourcesPath, 'build', 'icon.png'),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return candidates[0];
+}
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -26,7 +35,7 @@ async function createWindow(): Promise<void> {
     minWidth: 1024,
     minHeight: 700,
     title: 'Apilynx',
-    icon: appIconPath,
+    icon: resolveAppIconPath(),
     backgroundColor: '#09090b',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -50,7 +59,7 @@ async function createWindow(): Promise<void> {
   if (isDev) {
     await mainWindow.loadURL('http://localhost:3000');
   } else {
-    await mainWindow.loadFile(path.join(__dirname, '../../out/index.html'));
+    await mainWindow.loadFile(path.join(app.getAppPath(), 'out', 'index.html'));
   }
 
   mainWindow.on('closed', () => {
@@ -74,6 +83,13 @@ function registerIpcHandlers(): void {
 
 app.whenReady().then(async () => {
   try {
+    const envPath = loadAppEnv();
+    if (envPath) {
+      console.log(`Apilynx: loaded config from ${envPath}`);
+    } else {
+      console.warn('Apilynx: no .env found — using defaults / environment variables');
+    }
+
     await initializeDatabase();
     registerIpcHandlers();
     await createWindow();

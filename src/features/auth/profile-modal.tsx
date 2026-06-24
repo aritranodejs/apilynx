@@ -58,6 +58,10 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
       showError('Passwords do not match');
       return;
     }
+    if (user.hasPassword && !currentPassword) {
+      showError('Current password is required');
+      return;
+    }
     setSavingPassword(true);
     try {
       await authService.changePassword({
@@ -65,7 +69,8 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
         currentPassword,
         newPassword,
       });
-      showSuccess('Password changed');
+      if (token) setAuth({ ...user, hasPassword: true }, token);
+      showSuccess(user.hasPassword ? 'Password changed' : 'Password set');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -128,19 +133,28 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
 
       {tab === 'security' && (
         <div className="space-y-3">
+          {!user.hasPassword && (
+            <p className="text-xs text-zinc-400 rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
+              You signed in with Google. Set a password below if you also want email sign-in.
+            </p>
+          )}
+          {user.hasPassword && (
+            <div>
+              <label className="mb-1 flex items-center gap-1 text-xs text-zinc-400">
+                <Lock className="h-3 w-3" /> Current password
+              </label>
+              <Input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+          )}
           <div>
-            <label className="mb-1 flex items-center gap-1 text-xs text-zinc-400">
-              <Lock className="h-3 w-3" /> Current password
+            <label className="mb-1 block text-xs text-zinc-400">
+              {user.hasPassword ? 'New password' : 'Password'}
             </label>
-            <Input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs text-zinc-400">New password</label>
             <Input
               type="password"
               value={newPassword}
@@ -159,7 +173,7 @@ export function ProfileModal({ open, onClose }: ProfileModalProps) {
           </div>
           <div className="flex justify-end">
             <Button variant="primary" onClick={() => void handleChangePassword()} disabled={savingPassword}>
-              {savingPassword ? 'Updating...' : 'Change password'}
+              {savingPassword ? 'Updating...' : user.hasPassword ? 'Change password' : 'Set password'}
             </Button>
           </div>
         </div>

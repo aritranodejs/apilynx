@@ -5,6 +5,7 @@ export interface User {
   email: string;
   name: string;
   avatarUrl?: string;
+  hasPassword?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -74,6 +75,13 @@ export interface RegisterPayload {
   email: string;
   password: string;
   name: string;
+}
+
+export interface GoogleLoginPayload {
+  googleId: string;
+  email: string;
+  name: string;
+  avatarUrl?: string;
 }
 
 export interface AuthResponse {

@@ -9,7 +9,12 @@ directories:
 files:
   - dist-electron/**/*
   - out/**/*
+  - build/icon.png
   - package.json
+
+# Bundle .env at build time (must exist locally). For per-user config, use ~/.config/Apilynx/.env
+extraResources:
+  - .env
 
 extraMetadata:
   main: dist-electron/electron/main.js

@@ -229,7 +229,8 @@ const userSchema = new Schema(
   {
     clientId: { type: String, unique: true, required: true },
     email: { type: String, unique: true, required: true, lowercase: true },
-    passwordHash: { type: String, required: true },
+    passwordHash: { type: String },
+    googleId: { type: String, unique: true, sparse: true },
     name: { type: String, required: true },
     avatarUrl: String,
   },

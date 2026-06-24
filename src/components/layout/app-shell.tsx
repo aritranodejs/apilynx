@@ -23,6 +23,7 @@ import { InvitationsModal } from '@/features/invitations/invitations-modal';
 import { DocsPanel } from '@/features/documentation/docs-panel';
 import { MockServerPanel } from '@/features/mock/mock-server-panel';
 import { inviteService, authService } from '@/services/auth';
+import { assetPath } from '@/lib/asset-path';
 import { useQuery } from '@tanstack/react-query';
 import { useEnvironmentStore } from '@/stores/environment-store';
 import { useSettingsStore } from '@/stores/settings-store';
@@ -182,7 +183,7 @@ export function AppShell() {
         </div>
       )}
       <header className="flex items-center gap-3 border-b af-border px-4 py-2 shrink-0 af-surface-2">
-        <img src="/icon.png" alt="" className="h-6 w-6 rounded" />
+        <img src={assetPath('icon.png')} alt="" className="h-6 w-6 rounded" />
         <span className="font-semibold text-sm">Apilynx</span>
         <ProjectSelector onOpenSettings={() => setShowWorkspace(true)} />
         <EnvironmentSelector />

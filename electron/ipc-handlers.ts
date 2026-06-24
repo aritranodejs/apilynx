@@ -18,6 +18,7 @@ import type {
   User,
 } from '../src/types/auth';
 import { methodAllowsBody, normalizeRequestUrl } from '../src/lib/utils';
+import { isGoogleAuthConfigured, signInWithGoogle } from './google-auth';
 import {
   addHistoryEntry,
   clearHistory,
@@ -51,6 +52,7 @@ import {
   getTeamMembers,
   getTeams,
   login,
+  loginWithGoogle,
   logout,
   register,
   removeTeamMember,
@@ -243,6 +245,11 @@ export const dbHandlers = {
     register(payload),
   'auth:login': async (_e: IpcMainInvokeEvent, payload: LoginPayload): Promise<AuthResponse> =>
     login(payload),
+  'auth:loginWithGoogle': async (): Promise<AuthResponse> => {
+    const profile = await signInWithGoogle();
+    return loginWithGoogle(profile);
+  },
+  'auth:isGoogleConfigured': async (): Promise<boolean> => isGoogleAuthConfigured(),
   'auth:logout': async (_e: IpcMainInvokeEvent, token: string): Promise<void> => logout(token),
   'auth:getSession': async (_e: IpcMainInvokeEvent, token: string): Promise<User | null> =>
     getSessionUser(token),
