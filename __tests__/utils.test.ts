@@ -7,6 +7,7 @@ import {
   substituteVariables,
   applyAuthToHeaders,
   headersFromKeyValues,
+  prepareAuthForRequest,
 } from '@/lib/utils';
 import { generateCode } from '@/lib/code-generator';
 import { sanitizeResponseContent, maskSecret } from '@/lib/security';
@@ -17,7 +18,29 @@ describe('utils', () => {
     const req = createDefaultRequest('Test');
     expect(req.name).toBe('Test');
     expect(req.method).toBe('GET');
-    expect(req.auth.type).toBe('none');
+    expect(req.auth.type).toBe('inherit');
+  });
+
+  it('inherits environment bearer auth on requests', () => {
+    const auth = prepareAuthForRequest(
+      { type: 'inherit' },
+      { token: 'secret-token' },
+      { environmentAuth: { type: 'bearer', bearerToken: '{{token}}' } }
+    );
+    const headers = applyAuthToHeaders(auth, {});
+    expect(headers.Authorization).toBe('Bearer secret-token');
+  });
+
+  it('prefers collection auth over environment auth', () => {
+    const auth = prepareAuthForRequest(
+      { type: 'inherit' },
+      {},
+      {
+        collectionAuth: { type: 'bearer', bearerToken: 'collection-token' },
+        environmentAuth: { type: 'bearer', bearerToken: 'env-token' },
+      }
+    );
+    expect(auth.bearerToken).toBe('collection-token');
   });
 
   it('builds URL with query params', () => {

@@ -9,7 +9,7 @@ export type HttpMethod =
 
 export type BodyType = 'json' | 'raw' | 'form-data' | 'x-www-form-urlencoded' | 'graphql';
 
-export type AuthType = 'none' | 'bearer' | 'basic' | 'api-key';
+export type AuthType = 'inherit' | 'none' | 'bearer' | 'basic' | 'api-key';
 
 export type ThemeMode = 'dark' | 'light' | 'system';
 
@@ -102,6 +102,7 @@ export interface Collection {
   id: string;
   name: string;
   description?: string;
+  auth?: AuthConfig;
   folders: CollectionFolder[];
   requestIds: string[];
   projectId?: string;
@@ -123,6 +124,7 @@ export interface Environment {
   id: string;
   name: string;
   variables: EnvironmentVariable[];
+  defaultAuth?: AuthConfig;
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;

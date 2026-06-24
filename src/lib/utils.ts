@@ -15,7 +15,64 @@ export function createEmptyKeyValue(): KeyValuePair {
 }
 
 export function createDefaultAuth(): AuthConfig {
+  return { type: 'inherit' };
+}
+
+export function isAuthConfigured(auth: AuthConfig | undefined): boolean {
+  if (!auth) return false;
+  switch (auth.type) {
+    case 'bearer':
+      return !!auth.bearerToken?.trim();
+    case 'basic':
+      return !!auth.basicUsername?.trim();
+    case 'api-key':
+      return !!(auth.apiKeyKey?.trim() && auth.apiKeyValue);
+    default:
+      return false;
+  }
+}
+
+export function resolveEffectiveAuth(
+  requestAuth: AuthConfig,
+  options?: { collectionAuth?: AuthConfig; environmentAuth?: AuthConfig }
+): AuthConfig {
+  if (requestAuth.type !== 'inherit') {
+    return requestAuth;
+  }
+  const { collectionAuth, environmentAuth } = options ?? {};
+  if (isAuthConfigured(collectionAuth)) return collectionAuth!;
+  if (isAuthConfigured(environmentAuth)) return environmentAuth!;
   return { type: 'none' };
+}
+
+export function substituteAuthVariables(auth: AuthConfig, vars: Record<string, string>): AuthConfig {
+  if (auth.type === 'none' || auth.type === 'inherit') return auth;
+  return {
+    ...auth,
+    bearerToken: auth.bearerToken ? substituteVariables(auth.bearerToken, vars) : undefined,
+    basicUsername: auth.basicUsername ? substituteVariables(auth.basicUsername, vars) : undefined,
+    basicPassword: auth.basicPassword ? substituteVariables(auth.basicPassword, vars) : undefined,
+    apiKeyKey: auth.apiKeyKey ? substituteVariables(auth.apiKeyKey, vars) : undefined,
+    apiKeyValue: auth.apiKeyValue ? substituteVariables(auth.apiKeyValue, vars) : undefined,
+  };
+}
+
+export function prepareAuthForRequest(
+  requestAuth: AuthConfig,
+  vars: Record<string, string>,
+  options?: { collectionAuth?: AuthConfig; environmentAuth?: AuthConfig }
+): AuthConfig {
+  return substituteAuthVariables(resolveEffectiveAuth(requestAuth, options), vars);
+}
+
+export function describeAuthSource(
+  requestAuth: AuthConfig,
+  options?: { collectionAuth?: AuthConfig; environmentAuth?: AuthConfig }
+): string | null {
+  if (requestAuth.type !== 'inherit') return null;
+  if (isAuthConfigured(options?.collectionAuth)) return 'collection';
+  if (isAuthConfigured(options?.environmentAuth)) return 'environment';
+  return null;
 }
 
 export function createDefaultBody(type: BodyType = 'json'): ApiRequest['body'] {

@@ -31,6 +31,7 @@ export interface ElectronAPI {
   getSettings: () => Promise<AppSettings>;
   updateSettings: (updates: Partial<AppSettings>) => Promise<AppSettings>;
   getCollections: (projectId?: string) => Promise<Collection[]>;
+  getCollection: (id: string) => Promise<Collection | null>;
   createCollection: (
     name: string,
     description?: string,

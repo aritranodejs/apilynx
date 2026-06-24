@@ -174,6 +174,7 @@ const mockAPI: ElectronAPI = {
     if (!projectId) return db.collections;
     return db.collections.filter((c) => c.projectId === projectId);
   },
+  getCollection: async (id) => loadMockDB().collections.find((c) => c.id === id) ?? null,
   createCollection: async (name, description, projectId, ownerId, teamId) => {
     const db = loadMockDB();
     const col: Collection = {
@@ -234,7 +235,7 @@ const mockAPI: ElectronAPI = {
       params: [createEmptyKeyValue()],
       headers: [createEmptyKeyValue()],
       body: { type: 'json', content: '{\n  \n}', formData: [createEmptyKeyValue()] },
-      auth: { type: 'none' },
+      auth: { type: 'inherit' },
       collectionId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -788,6 +789,7 @@ export const settingsService = {
 export const collectionService = {
   getAll: (projectId?: string): Promise<Collection[]> =>
     invoke(() => api().getCollections(projectId)),
+  get: (id: string): Promise<Collection | null> => invoke(() => api().getCollection(id)),
   create: (
     name: string,
     description?: string,

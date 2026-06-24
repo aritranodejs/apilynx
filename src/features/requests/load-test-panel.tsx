@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { ApiRequest } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { httpService } from '@/services/ipc';
+import { httpService, collectionService } from '@/services/ipc';
 import { useSettingsStore } from '@/stores/settings-store';
+import { useEnvironmentStore } from '@/stores/environment-store';
 import {
   applyAuthToHeaders,
   applyAuthToUrl,
@@ -13,6 +15,7 @@ import {
   headersFromKeyValues,
   methodAllowsBody,
   normalizeRequestUrl,
+  prepareAuthForRequest,
 } from '@/lib/utils';
 import type { SendRequestPayload } from '@/types';
 import { Play, Square } from 'lucide-react';
@@ -30,6 +33,13 @@ interface LoadResult {
 
 export function LoadTestPanel({ request, resolvedUrl }: LoadTestPanelProps) {
   const timeout = useSettingsStore((s) => s.timeout);
+  const getVariablesMap = useEnvironmentStore((s) => s.getVariablesMap);
+  const getActiveEnvironment = useEnvironmentStore((s) => s.getActiveEnvironment);
+  const { data: collection } = useQuery({
+    queryKey: ['collection', request.collectionId],
+    queryFn: () => collectionService.get(request.collectionId!),
+    enabled: !!request.collectionId,
+  });
   const [iterations, setIterations] = useState(10);
   const [concurrency, setConcurrency] = useState(2);
   const [running, setRunning] = useState(false);
@@ -42,8 +52,14 @@ export function LoadTestPanel({ request, resolvedUrl }: LoadTestPanelProps) {
     setResults([]);
     const collected: LoadResult[] = [];
 
-    const headers = applyAuthToHeaders(request.auth, headersFromKeyValues(request.headers));
-    let url = applyAuthToUrl(resolvedUrl, request.auth);
+    const vars = getVariablesMap();
+    const auth = prepareAuthForRequest(request.auth, vars, {
+      collectionAuth: collection?.auth,
+      environmentAuth: getActiveEnvironment()?.defaultAuth,
+    });
+
+    const headers = applyAuthToHeaders(auth, headersFromKeyValues(request.headers));
+    let url = applyAuthToUrl(resolvedUrl, auth);
     url = normalizeRequestUrl(url);
 
     const body =

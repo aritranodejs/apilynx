@@ -4,14 +4,43 @@ import type { AuthConfig } from '@/types';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Select } from '@/components/ui/select';
+import { describeAuthSource, resolveEffectiveAuth } from '@/lib/utils';
 
 interface AuthEditorProps {
   auth: AuthConfig;
   onChange: (auth: AuthConfig) => void;
+  showInherit?: boolean;
+  collectionAuth?: AuthConfig;
+  environmentAuth?: AuthConfig;
 }
 
-export function AuthEditor({ auth, onChange }: AuthEditorProps) {
+function authTypeLabel(type: AuthConfig['type']): string {
+  switch (type) {
+    case 'bearer':
+      return 'Bearer Token';
+    case 'basic':
+      return 'Basic Auth';
+    case 'api-key':
+      return 'API Key';
+    case 'none':
+      return 'No Auth';
+    default:
+      return 'Unknown';
+  }
+}
+
+export function AuthEditor({
+  auth,
+  onChange,
+  showInherit = false,
+  collectionAuth,
+  environmentAuth,
+}: AuthEditorProps) {
   const update = (partial: Partial<AuthConfig>) => onChange({ ...auth, ...partial });
+
+  const inherited = showInherit && auth.type === 'inherit'
+    ? resolveEffectiveAuth(auth, { collectionAuth, environmentAuth })
+    : null;
 
   return (
     <div className="space-y-4 p-4">
@@ -21,6 +50,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
           value={auth.type}
           onChange={(e) => update({ type: e.target.value as AuthConfig['type'] })}
         >
+          {showInherit && <option value="inherit">Inherit from parent</option>}
           <option value="none">No Auth</option>
           <option value="bearer">Bearer Token</option>
           <option value="basic">Basic Auth</option>
@@ -28,13 +58,30 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
         </Select>
       </div>
 
+      {showInherit && auth.type === 'inherit' && (
+        <div className="rounded-md border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-xs text-zinc-400">
+          {inherited && inherited.type !== 'none' ? (
+            <span>
+              Using <span className="text-orange-400">{authTypeLabel(inherited.type)}</span> from{' '}
+              {describeAuthSource(auth, { collectionAuth, environmentAuth })}. Override by choosing
+              a specific auth type above.
+            </span>
+          ) : (
+            <span>
+              No auth configured on this collection or active environment. Set default auth in the
+              Environments panel (or collection auth) to apply it to all inheriting requests.
+            </span>
+          )}
+        </div>
+      )}
+
       {auth.type === 'bearer' && (
         <div className="flex items-center gap-3">
           <label className="text-sm text-zinc-400 w-24">Token</label>
           <PasswordInput
             value={auth.bearerToken ?? ''}
             onChange={(e) => update({ bearerToken: e.target.value })}
-            placeholder="Bearer token or {{TOKEN}}"
+            placeholder="Bearer token or {{token}}"
           />
         </div>
       )}

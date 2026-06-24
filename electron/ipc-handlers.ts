@@ -32,6 +32,7 @@ import {
   deleteRequest,
   disconnectDatabase,
   getCollections,
+  getCollection,
   getEnvironments,
   getHistory,
   getRequest,
@@ -189,6 +190,8 @@ export const dbHandlers = {
     updateSettings(updates),
   'db:getCollections': async (_e: IpcMainInvokeEvent, projectId?: string): Promise<Collection[]> =>
     getCollections(projectId),
+  'db:getCollection': async (_e: IpcMainInvokeEvent, id: string): Promise<Collection | null> =>
+    getCollection(id),
   'db:createCollection': async (
     _e: IpcMainInvokeEvent,
     name: string,

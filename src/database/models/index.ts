@@ -26,7 +26,7 @@ const keyValueSchema = new Schema<KeyValuePair>(
 
 const authSchema = new Schema<AuthConfig>(
   {
-    type: { type: String, enum: ['none', 'bearer', 'basic', 'api-key'], default: 'none' },
+    type: { type: String, enum: ['inherit', 'none', 'bearer', 'basic', 'api-key'], default: 'none' },
     bearerToken: String,
     basicUsername: String,
     basicPassword: String,
@@ -89,6 +89,7 @@ const collectionSchema = new Schema(
     clientId: { type: String, unique: true, sparse: true },
     name: { type: String, required: true },
     description: String,
+    auth: { type: authSchema, default: () => ({ type: 'none' }) },
     folders: [folderSchema],
     requestIds: { type: [String], default: [] },
     projectId: { type: String, index: true },
@@ -131,7 +132,7 @@ const requestSchema = new Schema(
     params: [keyValueSchema],
     headers: [keyValueSchema],
     body: { type: bodySchema, default: () => ({}) },
-    auth: { type: authSchema, default: () => ({ type: 'none' }) },
+    auth: { type: authSchema, default: () => ({ type: 'inherit' }) },
     tests: [requestTestSchema],
     exampleResponse: String,
     collectionId: String,
@@ -214,6 +215,7 @@ const environmentSchema = new Schema(
   {
     name: { type: String, required: true },
     variables: [envVariableSchema],
+    defaultAuth: { type: authSchema, default: () => ({ type: 'none' }) },
     isDefault: { type: Boolean, default: false },
   },
   { timestamps: true }

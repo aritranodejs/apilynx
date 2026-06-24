@@ -135,6 +135,11 @@ export async function getCollections(projectId?: string): Promise<Collection[]> 
   return docs.map((d) => toPlain<Collection>(d));
 }
 
+export async function getCollection(id: string): Promise<Collection | null> {
+  const doc = await CollectionModel.findOne(clientOrMongoIdFilter(id)).lean();
+  return doc ? toPlain<Collection>(doc) : null;
+}
+
 export async function createCollection(
   name: string,
   description?: string,
@@ -157,7 +162,7 @@ export async function createCollection(
 
 export async function updateCollection(
   id: string,
-  updates: Partial<Pick<Collection, 'name' | 'description' | 'folders' | 'requestIds'>>
+  updates: Partial<Pick<Collection, 'name' | 'description' | 'folders' | 'requestIds' | 'auth'>>
 ): Promise<Collection | null> {
   const doc = await CollectionModel.findOneAndUpdate(
     clientOrMongoIdFilter(id),

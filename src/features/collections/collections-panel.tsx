@@ -22,11 +22,13 @@ import {
   Play,
   BookOpen,
   Braces,
+  KeyRound,
 } from 'lucide-react';
 import { generateId } from '@/lib/utils';
 import { importOpenApi, importPostmanCollection, exportOpenApi } from '@/lib/import-export';
 import { downloadHtml, generateCollectionDocs } from '@/lib/docs-generator';
 import { CollectionRunnerModal } from '@/features/collections/collection-runner-modal';
+import { CollectionAuthModal } from '@/features/collections/collection-auth-modal';
 
 export function CollectionsPanel() {
   const [newName, setNewName] = useState('');
@@ -35,6 +37,7 @@ export function CollectionsPanel() {
   const [runnerCollection, setRunnerCollection] = useState<Collection | null>(null);
   const [runnerRequests, setRunnerRequests] = useState<ApiRequest[]>([]);
   const [showRunner, setShowRunner] = useState(false);
+  const [authCollection, setAuthCollection] = useState<Collection | null>(null);
   const queryClient = useQueryClient();
   const addTab = useTabsStore((s) => s.addTab);
   const activeProjectId = useWorkspaceStore((s) => s.activeProjectId);
@@ -258,6 +261,15 @@ export function CollectionsPanel() {
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => setAuthCollection(col)}
+                  className="!p-1"
+                  title="Collection auth"
+                >
+                  <KeyRound className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => void handleRunCollection(col)}
                   className="!p-1"
                   title="Run collection"
@@ -314,6 +326,12 @@ export function CollectionsPanel() {
         onClose={() => setShowRunner(false)}
         collection={runnerCollection}
         requests={runnerRequests}
+      />
+      <CollectionAuthModal
+        open={!!authCollection}
+        collection={authCollection}
+        onClose={() => setAuthCollection(null)}
+        onSaved={() => void queryClient.invalidateQueries({ queryKey: ['collections'] })}
       />
     </div>
   );

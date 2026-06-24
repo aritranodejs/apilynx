@@ -9,13 +9,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { createEmptyKeyValue } from '@/lib/utils';
+import { AuthEditor } from '@/features/auth/auth-editor';
 import { Globe, Plus, Save, Trash2 } from 'lucide-react';
-import type { EnvironmentVariable } from '@/types';
+import type { AuthConfig, EnvironmentVariable } from '@/types';
 
 export function EnvironmentsPanel() {
   const [newName, setNewName] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [localVariables, setLocalVariables] = useState<EnvironmentVariable[]>([]);
+  const [localDefaultAuth, setLocalDefaultAuth] = useState<AuthConfig>({ type: 'none' });
   const [isDirty, setIsDirty] = useState(false);
   const queryClient = useQueryClient();
   const setEnvironments = useEnvironmentStore((s) => s.setEnvironments);
@@ -43,8 +45,15 @@ export function EnvironmentsPanel() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, variables }: { id: string; variables: EnvironmentVariable[] }) =>
-      environmentService.update(id, { variables }),
+    mutationFn: ({
+      id,
+      variables,
+      defaultAuth,
+    }: {
+      id: string;
+      variables: EnvironmentVariable[];
+      defaultAuth: AuthConfig;
+    }) => environmentService.update(id, { variables, defaultAuth }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['environments'] });
       setIsDirty(false);
@@ -80,6 +89,7 @@ export function EnvironmentsPanel() {
           ? selected.variables
           : [{ ...createEmptyKeyValue(), secret: false }]
       );
+      setLocalDefaultAuth(selected.defaultAuth ?? { type: 'none' });
       setIsDirty(false);
     }
   }, [selected?.id, selected?.updatedAt]);
@@ -96,7 +106,13 @@ export function EnvironmentsPanel() {
     updateMutation.mutate({
       id: selected.id,
       variables: cleaned.length > 0 ? cleaned : [{ ...createEmptyKeyValue(), secret: false }],
+      defaultAuth: localDefaultAuth,
     });
+  };
+
+  const updateDefaultAuth = (defaultAuth: AuthConfig) => {
+    setLocalDefaultAuth(defaultAuth);
+    setIsDirty(true);
   };
 
   const updateVariable = (id: string, patch: Partial<EnvironmentVariable>) => {
@@ -194,8 +210,19 @@ export function EnvironmentsPanel() {
                 </div>
 
                 <p className="text-[10px] text-zinc-500">
-                  Use <code className="text-orange-400/90">{'{{KEY}}'}</code> in URLs, headers, and body.
+                  Use <code className="text-orange-400/90">{'{{KEY}}'}</code> in URLs, headers, body, and auth.
                 </p>
+
+                <div className="rounded-lg border border-zinc-800 bg-zinc-900/40">
+                  <p className="px-3 pt-3 text-[10px] uppercase tracking-wide text-zinc-500">
+                    Default auth (all requests)
+                  </p>
+                  <p className="px-3 pb-2 text-[10px] text-zinc-600">
+                    Applied to every request set to <span className="text-orange-400/90">Inherit from parent</span>.
+                    Use <code className="text-orange-400/90">{'{{token}}'}</code> to reference a variable below.
+                  </p>
+                  <AuthEditor auth={localDefaultAuth} onChange={updateDefaultAuth} />
+                </div>
 
                 {localVariables.map((v) => (
                   <div

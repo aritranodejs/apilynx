@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiRequest, HttpMethod } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -17,7 +17,7 @@ import { RequestToolbar } from '@/features/requests/request-toolbar';
 import { buildUrlWithParams, methodColor, substituteVariables } from '@/lib/utils';
 import { useEnvironmentStore } from '@/stores/environment-store';
 import { useSendRequest } from '@/hooks/use-send-request';
-import { requestService } from '@/services/ipc';
+import { requestService, collectionService } from '@/services/ipc';
 import { showError, showSuccess } from '@/stores/toast-store';
 import { Loader2, Send, Square, Terminal } from 'lucide-react';
 import { useTabsStore } from '@/stores/tabs-store';
@@ -47,8 +47,15 @@ export function RequestBuilder({ tabId, request, onSave }: RequestBuilderProps) 
   const duplicateTab = useTabsStore((s) => s.duplicateTab);
   const isLoading = useTabsStore((s) => s.tabs.find((t) => t.id === tabId)?.isLoading ?? false);
   const getVariablesMap = useEnvironmentStore((s) => s.getVariablesMap);
+  const getActiveEnvironment = useEnvironmentStore((s) => s.getActiveEnvironment);
   const { send, cancel } = useSendRequest();
   const queryClient = useQueryClient();
+
+  const { data: collection } = useQuery({
+    queryKey: ['collection', request.collectionId],
+    queryFn: () => collectionService.get(request.collectionId!),
+    enabled: !!request.collectionId,
+  });
 
   const vars = getVariablesMap();
   const resolvedUrl = buildUrlWithParams(
@@ -194,7 +201,13 @@ export function RequestBuilder({ tabId, request, onSave }: RequestBuilderProps) 
           <BodyEditor body={request.body} onChange={(body) => update({ body })} />
         )}
         {activeSection === 'auth' && (
-          <AuthEditor auth={request.auth} onChange={(auth) => update({ auth })} />
+          <AuthEditor
+            auth={request.auth}
+            onChange={(auth) => update({ auth })}
+            showInherit
+            collectionAuth={collection?.auth}
+            environmentAuth={getActiveEnvironment()?.defaultAuth}
+          />
         )}
         {activeSection === 'docs' && (
           <div className="p-4 space-y-3">

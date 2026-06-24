@@ -1,4 +1,4 @@
-import type { ApiRequest, RequestTest, RunnerResult } from '@/types';
+import type { ApiRequest, AuthConfig, RequestTest, RunnerResult } from '@/types';
 import { runRequestTests } from '@/lib/docs-generator';
 import { httpService } from '@/services/ipc';
 import {
@@ -9,6 +9,7 @@ import {
   headersFromKeyValues,
   methodAllowsBody,
   normalizeRequestUrl,
+  prepareAuthForRequest,
   substituteVariables,
 } from '@/lib/utils';
 import type { SendRequestPayload } from '@/types';
@@ -17,12 +18,18 @@ export async function runCollectionRequests(
   requests: ApiRequest[],
   variables: Record<string, string>,
   timeout: number,
-  delayMs = 0
+  delayMs = 0,
+  options?: { collectionAuth?: AuthConfig; environmentAuth?: AuthConfig }
 ): Promise<RunnerResult[]> {
   const results: RunnerResult[] = [];
 
   for (const request of requests) {
     if (delayMs > 0) await sleep(delayMs);
+
+    const auth = prepareAuthForRequest(request.auth, variables, {
+      collectionAuth: options?.collectionAuth,
+      environmentAuth: options?.environmentAuth,
+    });
 
     let url = normalizeRequestUrl(substituteVariables(request.url, variables));
     url = buildUrlWithParams(
@@ -33,10 +40,10 @@ export async function runCollectionRequests(
         value: substituteVariables(p.value, variables),
       }))
     );
-    url = applyAuthToUrl(url, request.auth);
+    url = applyAuthToUrl(url, auth);
 
     const headers = applyAuthToHeaders(
-      request.auth,
+      auth,
       headersFromKeyValues(
         request.headers.map((h) => ({
           ...h,

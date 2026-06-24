@@ -7,6 +7,7 @@ const electronAPI: ElectronAPI = {
   getSettings: () => ipcRenderer.invoke('db:getSettings'),
   updateSettings: (updates) => ipcRenderer.invoke('db:updateSettings', updates),
   getCollections: (projectId) => ipcRenderer.invoke('db:getCollections', projectId),
+  getCollection: (id) => ipcRenderer.invoke('db:getCollection', id),
   createCollection: (name, description, projectId, ownerId, teamId) =>
     ipcRenderer.invoke('db:createCollection', name, description, projectId, ownerId, teamId),
   updateCollection: (id, updates) => ipcRenderer.invoke('db:updateCollection', id, updates),

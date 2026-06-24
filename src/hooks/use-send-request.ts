@@ -4,7 +4,7 @@ import { useCallback, useRef } from 'react';
 import { useTabsStore } from '@/stores/tabs-store';
 import { useEnvironmentStore } from '@/stores/environment-store';
 import { useSettingsStore } from '@/stores/settings-store';
-import { httpService, historyService, requestService } from '@/services/ipc';
+import { httpService, historyService, requestService, collectionService } from '@/services/ipc';
 import { showError } from '@/stores/toast-store';
 import {
   applyAuthToHeaders,
@@ -14,6 +14,7 @@ import {
   headersFromKeyValues,
   methodAllowsBody,
   normalizeRequestUrl,
+  prepareAuthForRequest,
   substituteVariables,
 } from '@/lib/utils';
 import type { BodyType, KeyValuePair, SendRequestPayload } from '@/types';
@@ -54,6 +55,7 @@ export function useSendRequest() {
   const signalRef = useRef<string | null>(null);
   const { setTabLoading, setTabResponse, setTabDuration, getActiveTab } = useTabsStore();
   const getVariablesMap = useEnvironmentStore((s) => s.getVariablesMap);
+  const getActiveEnvironment = useEnvironmentStore((s) => s.getActiveEnvironment);
   const timeout = useSettingsStore((s) => s.timeout);
   const autoSave = useSettingsStore((s) => s.autoSave);
 
@@ -64,6 +66,12 @@ export function useSendRequest() {
 
       const vars = getVariablesMap();
       const request = tab.request;
+      const environmentAuth = getActiveEnvironment()?.defaultAuth;
+      const collection = request.collectionId
+        ? await collectionService.get(request.collectionId)
+        : null;
+      const collectionAuth = collection?.auth;
+      const auth = prepareAuthForRequest(request.auth, vars, { collectionAuth, environmentAuth });
 
       let url = normalizeRequestUrl(substituteVariables(request.url, vars));
       url = buildUrlWithParams(url, substituteInPairs(request.params, vars));
@@ -71,32 +79,10 @@ export function useSendRequest() {
         showError('Enter a request URL before sending');
         return;
       }
-      url = applyAuthToUrl(url, {
-        ...request.auth,
-        bearerToken: request.auth.bearerToken
-          ? substituteVariables(request.auth.bearerToken, vars)
-          : undefined,
-        apiKeyValue: request.auth.apiKeyValue
-          ? substituteVariables(request.auth.apiKeyValue, vars)
-          : undefined,
-      });
+      url = applyAuthToUrl(url, auth);
 
       const headers = applyAuthToHeaders(
-        {
-          ...request.auth,
-          bearerToken: request.auth.bearerToken
-            ? substituteVariables(request.auth.bearerToken, vars)
-            : undefined,
-          basicUsername: request.auth.basicUsername
-            ? substituteVariables(request.auth.basicUsername, vars)
-            : undefined,
-          basicPassword: request.auth.basicPassword
-            ? substituteVariables(request.auth.basicPassword, vars)
-            : undefined,
-          apiKeyValue: request.auth.apiKeyValue
-            ? substituteVariables(request.auth.apiKeyValue, vars)
-            : undefined,
-        },
+        auth,
         headersFromKeyValues(substituteInPairs(request.headers, vars))
       );
 
@@ -155,7 +141,7 @@ export function useSendRequest() {
         signalRef.current = null;
       }
     },
-    [getVariablesMap, timeout, autoSave, setTabLoading, setTabResponse, setTabDuration]
+    [getVariablesMap, getActiveEnvironment, timeout, autoSave, setTabLoading, setTabResponse, setTabDuration]
   );
 
   const cancel = useCallback(() => {

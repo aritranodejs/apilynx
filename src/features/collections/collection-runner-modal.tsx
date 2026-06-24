@@ -27,6 +27,7 @@ export function CollectionRunnerModal({
   const [delayMs, setDelayMs] = useState(0);
   const [results, setResults] = useState<RunnerResult[]>([]);
   const getVariablesMap = useEnvironmentStore((s) => s.getVariablesMap);
+  const getActiveEnvironment = useEnvironmentStore((s) => s.getActiveEnvironment);
   const timeout = useSettingsStore((s) => s.timeout);
 
   const handleRun = async () => {
@@ -35,7 +36,10 @@ export function CollectionRunnerModal({
     setResults([]);
     try {
       const vars = getVariablesMap();
-      const out = await runCollectionRequests(requests, vars, timeout, delayMs);
+      const out = await runCollectionRequests(requests, vars, timeout, delayMs, {
+        collectionAuth: collection.auth,
+        environmentAuth: getActiveEnvironment()?.defaultAuth,
+      });
       setResults(out);
     } finally {
       setRunning(false);
