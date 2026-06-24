@@ -28,6 +28,10 @@ mac:
         - x64
         - arm64
 
+dmg:
+  title: Apilynx ${version}
+  icon: build/icon.png
+
 win:
   icon: build/icon.ico
   target:
@@ -37,16 +41,48 @@ win:
 
 linux:
   icon: build/icon.png
+  executableName: apilynx
+  category: Development
+  maintainer: Aritra Dutta <aritra@apilynx.app>
+  synopsis: Modern API testing desktop application
+  description: Apilynx — API client for testing REST, GraphQL, collections, environments, and team workspaces.
+  desktop:
+    Name: Apilynx
+    Comment: API testing desktop application
+    Categories: Development;Network;
+    StartupWMClass: apilynx
   target:
+    - target: deb
+      arch:
+        - x64
     - target: AppImage
       arch:
         - x64
-  category: Development
-  maintainer: Aritra Dutta <aritra@apilynx.app>
+
+deb:
+  packageName: apilynx
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
 
 nsis:
   oneClick: false
+  perMachine: false
   allowToChangeInstallationDirectory: true
-  createDesktopShortcut: true
+  allowElevation: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: Apilynx
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
+  uninstallDisplayName: Apilynx
+  artifactName: Apilynx-Setup-${version}.${ext}
 
 publish: null
