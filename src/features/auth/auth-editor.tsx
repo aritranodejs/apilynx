@@ -2,6 +2,7 @@
 
 import type { AuthConfig } from '@/types';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Select } from '@/components/ui/select';
 
 interface AuthEditorProps {
@@ -30,8 +31,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
       {auth.type === 'bearer' && (
         <div className="flex items-center gap-3">
           <label className="text-sm text-zinc-400 w-24">Token</label>
-          <Input
-            type="password"
+          <PasswordInput
             value={auth.bearerToken ?? ''}
             onChange={(e) => update({ bearerToken: e.target.value })}
             placeholder="Bearer token or {{TOKEN}}"
@@ -50,8 +50,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
           </div>
           <div className="flex items-center gap-3">
             <label className="text-sm text-zinc-400 w-24">Password</label>
-            <Input
-              type="password"
+            <PasswordInput
               value={auth.basicPassword ?? ''}
               onChange={(e) => update({ basicPassword: e.target.value })}
             />
@@ -71,8 +70,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
           </div>
           <div className="flex items-center gap-3">
             <label className="text-sm text-zinc-400 w-24">Value</label>
-            <Input
-              type="password"
+            <PasswordInput
               value={auth.apiKeyValue ?? ''}
               onChange={(e) => update({ apiKeyValue: e.target.value })}
             />
