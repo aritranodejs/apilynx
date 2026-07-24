@@ -59,7 +59,14 @@ async function createWindow(): Promise<void> {
   if (isDev) {
     await mainWindow.loadURL('http://localhost:3000/app/');
   } else {
-    await mainWindow.loadFile(path.join(app.getAppPath(), 'out', 'app', 'index.html'));
+    const appHtml = path.join(app.getAppPath(), 'out', 'app', 'index.html');
+    mainWindow.webContents.on('did-fail-load', (_e, code, desc, url) => {
+      console.error(`Apilynx failed to load (${code}): ${desc} — ${url}`);
+    });
+    mainWindow.webContents.on('render-process-gone', (_e, details) => {
+      console.error('Apilynx render process gone:', details);
+    });
+    await mainWindow.loadFile(appHtml);
   }
 
   mainWindow.on('closed', () => {

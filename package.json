@@ -13,7 +13,7 @@
     "dev": "next dev --webpack",
     "dev:clean": "rm -rf .next && next dev --webpack",
     "build": "next build",
-    "build:electron": "cross-env ELECTRON_BUILD=1 next build",
+    "build:electron": "cross-env ELECTRON_BUILD=1 next build && node scripts/fix-electron-asset-paths.js && rm -rf out/downloads",
     "start": "next start",
     "lint": "eslint",
     "electron:compile": "tsc -p electron/tsconfig.json && tsc-alias -p electron/tsconfig.json -f 'dist-electron/src/**/*.js' && node scripts/fix-electron-imports.js",
@@ -30,6 +30,7 @@
     "dist:mac": "npm run electron:build && electron-builder --mac dmg --config electron-builder.yml",
     "install:linux": "bash scripts/install-linux-deb.sh",
     "sync:downloads": "bash scripts/sync-downloads.sh",
+    "release:publish": "bash scripts/publish-release.sh",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"

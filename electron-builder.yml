@@ -9,6 +9,7 @@ directories:
 files:
   - dist-electron/**/*
   - out/**/*
+  - "!out/downloads/**"
   - build/icon.png
   - package.json
 
