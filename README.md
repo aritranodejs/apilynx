@@ -120,6 +120,21 @@ npm run electron:build
 npm run electron:start
 ```
 
+## Deploy site to Vercel
+
+Yes — marketing, docs, and **Try in browser** (`/app`) work on Vercel because the project uses Next.js `output: 'export'` (static files in `out/`).
+
+1. Import the GitHub repo in Vercel
+2. Framework: Next.js — or set:
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `out`
+3. Add `NEXT_PUBLIC_*` env vars (same as `.env.example`), especially:
+   - `NEXT_PUBLIC_SITE_URL` = your Vercel URL
+   - `NEXT_PUBLIC_DOWNLOADS_LIVE` + download URLs
+4. Redeploy after env changes (`NEXT_PUBLIC_*` are baked at build time)
+
+**Note:** Browser try stores data in the user’s **localStorage** (no MongoDB on Vercel). Desktop installers still use **MongoDB** via Electron. Do not put `MONGODB_URI` / Google secrets in Vercel unless you later add a real server API.
+
 ## Packaging Installers
 
 ```bash
@@ -180,7 +195,6 @@ cp .env.example .env
 | `NEXT_PUBLIC_APP_VERSION` | `1.0.0` | Version shown on download pages |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Public site URL |
 | `NEXT_PUBLIC_GITHUB_REPO` | `aritranodejs/apilynx` | GitHub `owner/repo` |
-| `NEXT_PUBLIC_ALLOW_BROWSER_MOCK` | `false` | `true` only for local UI preview without Electron (fake localStorage DB). Keep `false` in production. |
 | `NEXT_PUBLIC_DOWNLOADS_LIVE` | `false` | `true` enables download buttons |
 | `NEXT_PUBLIC_DOWNLOAD_BASE_URL` | `/downloads` | Base path/URL for installers |
 | `NEXT_PUBLIC_DOWNLOAD_WINDOWS_URL` | _(empty)_ | Full Windows installer URL (optional override) |
