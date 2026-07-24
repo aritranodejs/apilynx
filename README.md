@@ -124,16 +124,26 @@ npm run electron:start
 
 Yes — marketing, docs, and **Try in browser** (`/app`) work on Vercel because the project uses Next.js `output: 'export'` (static files in `out/`).
 
-1. Import the GitHub repo in Vercel
-2. Framework: Next.js — or set:
-   - **Build Command:** `npm run build`
-   - **Output Directory:** `out`
-3. Add `NEXT_PUBLIC_*` env vars (same as `.env.example`), especially:
+**Important:** This is a **static export**, not a Next.js serverless app. If Vercel auto-detects “Next.js”, you get `routes-manifest.json` errors.
+
+### Project settings (required)
+
+| Setting | Value |
+|---------|--------|
+| Framework Preset | **Other** (not Next.js) |
+| Build Command | `npm run build` |
+| Output Directory | `out` |
+| Install Command | `npm install` |
+
+`vercel.json` in the repo already sets `framework: null` + `outputDirectory: out`. After pulling that change, **Redeploy**.
+
+1. Import the GitHub repo in Vercel (or push and redeploy)
+2. Add `NEXT_PUBLIC_*` env vars (same as `.env.example`), especially:
    - `NEXT_PUBLIC_SITE_URL` = your Vercel URL
    - `NEXT_PUBLIC_DOWNLOADS_LIVE` + download URLs
-4. Redeploy after env changes (`NEXT_PUBLIC_*` are baked at build time)
+3. Redeploy after env changes (`NEXT_PUBLIC_*` are baked at build time)
 
-**Note:** Browser try stores data in the user’s **localStorage** (no MongoDB on Vercel). Desktop installers still use **MongoDB** via Electron. Do not put `MONGODB_URI` / Google secrets in Vercel unless you later add a real server API.
+**Note:** Browser try stores data in the user’s browser only. Desktop installers still use the database via Electron. Do not put `MONGODB_URI` / Google secrets in Vercel unless you later add a real server API.
 
 ## Packaging Installers
 
