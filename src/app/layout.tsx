@@ -1,11 +1,19 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { DM_Sans, Geist_Mono, Syne } from 'next/font/google';
 import { Providers } from '@/components/providers';
+import { APP_NAME } from '@/content/downloads';
 import './globals.css';
 
-const geistSans = Geist({
+const display = Syne({
+  variable: '--font-display',
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+});
+
+const sans = DM_Sans({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
 });
 
 const geistMono = Geist_Mono({
@@ -14,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Apilynx',
+  title: APP_NAME,
   description: 'Modern API testing desktop application by Aritra Dutta',
   icons: { icon: process.env.ELECTRON_BUILD === '1' ? './icon.png' : '/icon.png' },
 };
@@ -27,11 +35,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${display.variable} ${sans.variable} ${geistMono.variable} h-full antialiased dark`}
       suppressHydrationWarning
     >
       <body
-        className="h-full overflow-hidden font-sans af-surface"
+        className="h-full overflow-y-auto overflow-x-hidden font-sans af-surface"
         suppressHydrationWarning
       >
         <Providers>{children}</Providers>

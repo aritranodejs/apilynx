@@ -174,17 +174,29 @@ export function AppShell() {
   }
 
   return (
-    <div className="flex flex-col h-screen af-surface">
+    <div className="apilynx-app-shell flex flex-col h-screen af-surface">
       {!isElectron && (
-        <div className="shrink-0 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
-          Browser mode — CORS applies. Run{' '}
-          <code className="rounded bg-zinc-800 px-1">npm run electron:dev</code> for full desktop
-          features with Apilynx.
+        <div className="shrink-0 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span>Browser preview — some APIs may be blocked by the browser.</span>
+          <a href="/docs/download/" className="font-medium text-orange-300 underline hover:text-orange-200">
+            Download the desktop app
+          </a>
+          <span className="text-amber-200/70">for the full experience.</span>
         </div>
       )}
       <header className="flex items-center gap-3 border-b af-border px-4 py-2 shrink-0 af-surface-2">
-        <img src={assetPath('icon.png')} alt="" className="h-6 w-6 rounded" />
-        <span className="font-semibold text-sm">Apilynx</span>
+        <a href="/" className="flex items-center gap-2 shrink-0 rounded hover:opacity-90" title="Home">
+          <img src={assetPath('icon.png')} alt="" className="h-6 w-6 rounded" />
+          <span className="font-semibold text-sm">Apilynx</span>
+        </a>
+        {!isElectron && (
+          <a
+            href="/docs/"
+            className="hidden sm:inline text-xs text-zinc-500 hover:text-orange-400 transition-colors"
+          >
+            Docs
+          </a>
+        )}
         <ProjectSelector onOpenSettings={() => setShowWorkspace(true)} />
         <EnvironmentSelector />
         <div className="ml-auto flex items-center gap-2">

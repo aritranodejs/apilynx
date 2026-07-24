@@ -31,8 +31,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (secrets)
-.env*
+# env files (secrets) — keep .env.example tracked
+.env
+.env.*
+!.env.example
 
 # vercel
 .vercel
@@ -43,3 +45,8 @@ next-env.d.ts
 
 # keep app icons in build/ (committed for electron-builder)
 # /build is NOT ignored — icon.png and icon.ico are required for packaging
+
+# large installers (generated — serve from public/downloads locally / CI)
+/public/downloads/*
+!/public/downloads/.gitkeep
+!/public/downloads/README.md

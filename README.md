@@ -165,9 +165,32 @@ Default environments seeded on first run: **Local**, **Development**, **Staging*
 
 ## Environment Variables
 
-| Variable      | Default                              | Description        |
-|---------------|--------------------------------------|--------------------|
-| `MONGODB_URI` | `mongodb://127.0.0.1:27017/apilynx` | MongoDB connection |
+Copy the template, then edit values:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MONGODB_URI` | `mongodb://127.0.0.1:27017/apilynx` | MongoDB connection (Electron) |
+| `GOOGLE_CLIENT_ID` | _(empty)_ | Google OAuth client id (optional) |
+| `GOOGLE_CLIENT_SECRET` | _(empty)_ | Google OAuth secret (optional) |
+| `NEXT_PUBLIC_APP_NAME` | `Apilynx` | Product name in the UI |
+| `NEXT_PUBLIC_APP_VERSION` | `1.0.0` | Version shown on download pages |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Public site URL |
+| `NEXT_PUBLIC_GITHUB_REPO` | `aritranodejs/apilynx` | GitHub `owner/repo` |
+| `NEXT_PUBLIC_DOWNLOADS_LIVE` | `false` | `true` enables download buttons |
+| `NEXT_PUBLIC_DOWNLOAD_BASE_URL` | `/downloads` | Base path/URL for installers |
+| `NEXT_PUBLIC_DOWNLOAD_WINDOWS_URL` | _(empty)_ | Full Windows installer URL (optional override) |
+| `NEXT_PUBLIC_DOWNLOAD_MAC_ARM_URL` | _(empty)_ | Full macOS arm64 DMG URL |
+| `NEXT_PUBLIC_DOWNLOAD_MAC_INTEL_URL` | _(empty)_ | Full macOS Intel DMG URL |
+| `NEXT_PUBLIC_DOWNLOAD_LINUX_DEB_URL` | _(empty)_ | Full Linux `.deb` URL |
+| `NEXT_PUBLIC_DOWNLOAD_LINUX_APPIMAGE_URL` | _(empty)_ | Full Linux AppImage URL |
+
+Optional filename overrides: `NEXT_PUBLIC_DOWNLOAD_*_FILENAME` (see `.env.example`).
+
+`NEXT_PUBLIC_*` values are baked in at **build / dev start** — restart `npm run dev` after changing them.
 
 ## Security
 

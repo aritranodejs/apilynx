@@ -29,6 +29,7 @@
     "dist:win": "npm run electron:build && electron-builder --win nsis --config electron-builder.yml",
     "dist:mac": "npm run electron:build && electron-builder --mac dmg --config electron-builder.yml",
     "install:linux": "bash scripts/install-linux-deb.sh",
+    "sync:downloads": "bash scripts/sync-downloads.sh",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"

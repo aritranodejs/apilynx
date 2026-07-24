@@ -57,9 +57,9 @@ async function createWindow(): Promise<void> {
   });
 
   if (isDev) {
-    await mainWindow.loadURL('http://localhost:3000');
+    await mainWindow.loadURL('http://localhost:3000/app/');
   } else {
-    await mainWindow.loadFile(path.join(app.getAppPath(), 'out', 'index.html'));
+    await mainWindow.loadFile(path.join(app.getAppPath(), 'out', 'app', 'index.html'));
   }
 
   mainWindow.on('closed', () => {

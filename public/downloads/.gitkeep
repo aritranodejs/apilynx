@@ -1,0 +1,11 @@
+# Drop installer files here when using NEXT_PUBLIC_DOWNLOAD_BASE_URL=/downloads
+#
+# 1. Copy .env.example → .env
+# 2. Set NEXT_PUBLIC_DOWNLOADS_LIVE=true
+# 3. Place files (names from NEXT_PUBLIC_APP_VERSION / filename env vars), e.g.:
+#      Apilynx-Setup-1.0.0.exe
+#      Apilynx-1.0.0-arm64.dmg
+#      Apilynx-1.0.0-x64.dmg
+#      apilynx_1.0.0_amd64.deb
+#      Apilynx-1.0.0.AppImage
+# 4. Or set full URLs: NEXT_PUBLIC_DOWNLOAD_WINDOWS_URL=https://...

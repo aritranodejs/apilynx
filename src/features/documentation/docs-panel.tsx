@@ -11,7 +11,7 @@ import { Modal } from '@/components/ui/modal';
 import { generateCollectionDocs, downloadHtml } from '@/lib/docs-generator';
 import { methodColor, cn } from '@/lib/utils';
 import { showSuccess } from '@/stores/toast-store';
-import { BookOpen, Download, Maximize2, FileText } from 'lucide-react';
+import { BookOpen, Download, Maximize2, FileText, Eye } from 'lucide-react';
 import type { Collection } from '@/types';
 
 export function DocsPanel() {
@@ -22,6 +22,7 @@ export function DocsPanel() {
   const [collectionDesc, setCollectionDesc] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [focusedRequestId, setFocusedRequestId] = useState<string | null>(null);
+  const [showInlinePreview, setShowInlinePreview] = useState(true);
 
   const { data: collections = [] } = useQuery({
     queryKey: ['collections', activeProjectId, user?.id],
@@ -111,20 +112,31 @@ export function DocsPanel() {
             />
             <div className="flex gap-2">
               <Button
-                variant="primary"
+                variant={showInlinePreview ? 'primary' : 'secondary'}
                 size="sm"
                 className="flex-1"
+                onClick={() => setShowInlinePreview((v) => !v)}
+                disabled={!html || requests.length === 0}
+                title="Toggle live preview"
+              >
+                <Eye className="h-3.5 w-3.5" /> Preview
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setShowPreview(true)}
                 disabled={!html || requests.length === 0}
+                title="Full screen preview"
               >
-                <Maximize2 className="h-3.5 w-3.5" /> Full preview
+                <Maximize2 className="h-3.5 w-3.5" />
               </Button>
-              <Button variant="secondary" size="sm" className="flex-1" onClick={handleExport} disabled={!html}>
-                <Download className="h-3.5 w-3.5" /> Export
+              <Button variant="secondary" size="sm" onClick={handleExport} disabled={!html}>
+                <Download className="h-3.5 w-3.5" />
               </Button>
             </div>
             <p className="text-[10px] text-zinc-600">
-              {requests.length} endpoint{requests.length !== 1 ? 's' : ''} · Edit per-request docs in Request → Docs tab
+              {requests.length} endpoint{requests.length !== 1 ? 's' : ''} · Edit per-request docs in
+              Request → Docs tab
             </p>
           </>
         )}
@@ -132,54 +144,84 @@ export function DocsPanel() {
 
       {collections.length > 0 && selected && (
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          <div className="shrink-0 px-3 py-2 border-b border-zinc-800 text-[10px] uppercase text-zinc-500">
-            Endpoints
-          </div>
-          <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-1.5">
-            {requests.length === 0 ? (
-              <p className="text-xs text-zinc-500 p-3 text-center">No requests in this collection</p>
-            ) : (
-              requests.map((req) => (
-                <button
-                  key={req.id}
-                  type="button"
-                  onClick={() => setFocusedRequestId(req.id === focusedRequestId ? null : req.id)}
-                  className={cn(
-                    'w-full text-left rounded-lg border p-2 transition-colors',
-                    focusedRequestId === req.id
-                      ? 'border-orange-500/50 bg-orange-500/10'
-                      : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700'
-                  )}
-                >
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className={cn('text-[10px] font-bold font-mono shrink-0', methodColor(req.method))}>
-                      {req.method}
-                    </span>
-                    <span className="text-xs text-zinc-200 truncate">{req.name}</span>
-                  </div>
-                  <p className="text-[10px] text-zinc-500 font-mono truncate mt-0.5">{req.url || 'No URL'}</p>
-                </button>
-              ))
-            )}
-          </div>
-
-          {focusedRequest && (
-            <div className="shrink-0 max-h-[45%] overflow-y-auto border-t border-zinc-800 p-3 space-y-2 bg-zinc-900/80">
-              <div className="flex items-center gap-2">
-                <FileText className="h-3.5 w-3.5 text-orange-400 shrink-0" />
-                <span className="text-xs font-medium text-zinc-200 truncate">{focusedRequest.name}</span>
+          {showInlinePreview && html && requests.length > 0 ? (
+            <div className="flex-1 min-h-0 flex flex-col border-b border-zinc-800">
+              <div className="shrink-0 px-3 py-1.5 border-b border-zinc-800/80 text-[10px] uppercase tracking-wide text-zinc-500 flex items-center justify-between">
+                <span>Published preview</span>
+                <span className="normal-case text-zinc-600 truncate max-w-[50%]">{selected.name}</span>
               </div>
-              {focusedRequest.description ? (
-                <p className="text-xs text-zinc-400 leading-relaxed">{focusedRequest.description}</p>
-              ) : (
-                <p className="text-xs text-zinc-600 italic">No description — add one in Request → Docs tab</p>
-              )}
-              {focusedRequest.exampleResponse && (
-                <pre className="text-[10px] font-mono text-zinc-400 bg-zinc-950 rounded p-2 overflow-x-auto max-h-24">
-                  {focusedRequest.exampleResponse}
-                </pre>
-              )}
+              <iframe
+                title="API Documentation live preview"
+                srcDoc={html}
+                className="w-full flex-1 min-h-0 border-0 bg-zinc-950"
+                sandbox="allow-same-origin"
+              />
             </div>
+          ) : (
+            <>
+              <div className="shrink-0 px-3 py-2 border-b border-zinc-800 text-[10px] uppercase text-zinc-500">
+                Endpoints
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-1.5">
+                {requests.length === 0 ? (
+                  <p className="text-xs text-zinc-500 p-3 text-center">No requests in this collection</p>
+                ) : (
+                  requests.map((req) => (
+                    <button
+                      key={req.id}
+                      type="button"
+                      onClick={() => setFocusedRequestId(req.id === focusedRequestId ? null : req.id)}
+                      className={cn(
+                        'w-full text-left rounded-lg border p-2 transition-colors',
+                        focusedRequestId === req.id
+                          ? 'border-orange-500/50 bg-orange-500/10'
+                          : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700'
+                      )}
+                    >
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span
+                          className={cn(
+                            'text-[10px] font-bold font-mono shrink-0',
+                            methodColor(req.method)
+                          )}
+                        >
+                          {req.method}
+                        </span>
+                        <span className="text-xs text-zinc-200 truncate">{req.name}</span>
+                      </div>
+                      <p className="text-[10px] text-zinc-500 font-mono truncate mt-0.5">
+                        {req.url || 'No URL'}
+                      </p>
+                    </button>
+                  ))
+                )}
+              </div>
+
+              {focusedRequest && (
+                <div className="shrink-0 max-h-[45%] overflow-y-auto border-t border-zinc-800 p-3 space-y-2 bg-zinc-900/80">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-3.5 w-3.5 text-orange-400 shrink-0" />
+                    <span className="text-xs font-medium text-zinc-200 truncate">
+                      {focusedRequest.name}
+                    </span>
+                  </div>
+                  {focusedRequest.description ? (
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      {focusedRequest.description}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-zinc-600 italic">
+                      No description — add one in Request → Docs tab
+                    </p>
+                  )}
+                  {focusedRequest.exampleResponse && (
+                    <pre className="text-[10px] font-mono text-zinc-400 bg-zinc-950 rounded p-2 overflow-x-auto max-h-24">
+                      {focusedRequest.exampleResponse}
+                    </pre>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
