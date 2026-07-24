@@ -18,7 +18,7 @@ import { ProjectSelector } from '@/features/projects/project-selector';
 import { WorkspaceModal } from '@/features/projects/workspace-modal';
 import { SettingsPanel } from '@/features/settings/settings-panel';
 import { Modal } from '@/components/ui/modal';
-import { environmentService, settingsService, isElectronApp, requestService } from '@/services/ipc';
+import { environmentService, settingsService, isElectronApp, requestService, allowBrowserMock } from '@/services/ipc';
 import { InvitationsModal } from '@/features/invitations/invitations-modal';
 import { DocsPanel } from '@/features/documentation/docs-panel';
 import { MockServerPanel } from '@/features/mock/mock-server-panel';
@@ -89,7 +89,11 @@ export function AppShell() {
   useAuthInit();
 
   useEffect(() => {
-    void useTabsStore.persist.rehydrate();
+    try {
+      void useTabsStore.persist.rehydrate();
+    } catch (e) {
+      console.error('Tabs rehydrate failed:', e);
+    }
     setIsElectron(isElectronApp());
     setIsReady(true);
   }, []);
@@ -169,6 +173,33 @@ export function AppShell() {
     return (
       <div className="flex h-screen items-center justify-center bg-zinc-950 text-zinc-400">
         Loading Apilynx...
+      </div>
+    );
+  }
+
+  if (!isElectron && !allowBrowserMock()) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-5 bg-zinc-950 px-6 text-center">
+        <img src={assetPath('icon.png')} alt="" className="h-14 w-14 rounded-xl" />
+        <h1 className="text-2xl font-semibold text-zinc-100">Use the Apilynx desktop app</h1>
+        <p className="max-w-md text-sm leading-relaxed text-zinc-400">
+          Collections, environments, history, auth, and GraphQL testing use your real MongoDB
+          database in the desktop build — not browser mock data.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="/#download"
+            className="rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-400"
+          >
+            Download desktop
+          </a>
+          <a
+            href="/docs/"
+            className="rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-orange-500/40"
+          >
+            Read docs
+          </a>
+        </div>
       </div>
     );
   }

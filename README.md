@@ -180,6 +180,7 @@ cp .env.example .env
 | `NEXT_PUBLIC_APP_VERSION` | `1.0.0` | Version shown on download pages |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Public site URL |
 | `NEXT_PUBLIC_GITHUB_REPO` | `aritranodejs/apilynx` | GitHub `owner/repo` |
+| `NEXT_PUBLIC_ALLOW_BROWSER_MOCK` | `false` | `true` only for local UI preview without Electron (fake localStorage DB). Keep `false` in production. |
 | `NEXT_PUBLIC_DOWNLOADS_LIVE` | `false` | `true` enables download buttons |
 | `NEXT_PUBLIC_DOWNLOAD_BASE_URL` | `/downloads` | Base path/URL for installers |
 | `NEXT_PUBLIC_DOWNLOAD_WINDOWS_URL` | _(empty)_ | Full Windows installer URL (optional override) |

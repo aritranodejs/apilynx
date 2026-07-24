@@ -14,17 +14,9 @@ interface BodyEditorProps {
   onChange: (body: RequestBody) => void;
 }
 
-const DEFAULT_GQL_QUERY = `query Demo($id: ID!) {
-  user(id: $id) {
-    id
-    name
-    email
-  }
-}`;
+const DEFAULT_GQL_QUERY = `query {\n  __typename\n}`;
 
-const DEFAULT_GQL_VARIABLES = `{
-  "id": "1"
-}`;
+const DEFAULT_GQL_VARIABLES = `{}`;
 
 function parseGraphqlContent(content: string): { query: string; variables: string } {
   const trimmed = content.trim();

@@ -1,12 +1,9 @@
 import type { NextConfig } from 'next';
 
-/** Relative asset paths are required for Electron file:// loading in packaged apps. */
-const isElectronBuild = process.env.ELECTRON_BUILD === '1';
-
 /**
  * Keep distDir as `.next` (dev + build cache).
- * `output: 'export'` still writes the static site to `/out` for Electron.
- * Using `distDir: 'out'` breaks `next dev` after a production export.
+ * `output: 'export'` writes the static site to `/out`.
+ * Packaged Electron serves `/out` over localhost (not file://) so App Router works.
  */
 const nextConfig: NextConfig = {
   output: 'export',
@@ -15,7 +12,6 @@ const nextConfig: NextConfig = {
   },
   trailingSlash: true,
   transpilePackages: ['@monaco-editor/react', 'monaco-editor'],
-  ...(isElectronBuild ? { assetPrefix: './' } : {}),
 };
 
 export default nextConfig;

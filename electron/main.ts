@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as http from 'http';
 import * as path from 'path';
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { loadAppEnv } from './load-env';
@@ -10,6 +11,7 @@ import {
   shutdownDatabase,
 } from './ipc-handlers';
 import { stopMockServer } from './mock-server';
+import { startStaticServer } from './static-server';
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
@@ -27,6 +29,7 @@ function resolveAppIconPath(): string {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let staticServer: http.Server | null = null;
 
 async function createWindow(): Promise<void> {
   mainWindow = new BrowserWindow({
@@ -56,17 +59,21 @@ async function createWindow(): Promise<void> {
     return { action: 'deny' };
   });
 
+  mainWindow.webContents.on('did-fail-load', (_e, code, desc, url) => {
+    console.error(`Apilynx failed to load (${code}): ${desc} — ${url}`);
+  });
+
   if (isDev) {
     await mainWindow.loadURL('http://localhost:3000/app/');
   } else {
-    const appHtml = path.join(app.getAppPath(), 'out', 'app', 'index.html');
-    mainWindow.webContents.on('did-fail-load', (_e, code, desc, url) => {
-      console.error(`Apilynx failed to load (${code}): ${desc} — ${url}`);
-    });
-    mainWindow.webContents.on('render-process-gone', (_e, details) => {
-      console.error('Apilynx render process gone:', details);
-    });
-    await mainWindow.loadFile(appHtml);
+    const outDir = path.join(app.getAppPath(), 'out');
+    if (!fs.existsSync(outDir)) {
+      throw new Error(`UI export missing at ${outDir}`);
+    }
+    const { server, port } = await startStaticServer(outDir);
+    staticServer = server;
+    console.log(`Apilynx: serving UI at http://127.0.0.1:${port}/app/`);
+    await mainWindow.loadURL(`http://127.0.0.1:${port}/app/`);
   }
 
   mainWindow.on('closed', () => {
@@ -95,7 +102,7 @@ function formatStartupError(error: unknown, envPath: string | null): string {
     '',
     'Common fixes:',
     '• Ensure this PC has internet access',
-    '• MongoDB Atlas → Network Access → add this machine\'s IP (or 0.0.0.0/0)',
+    "• MongoDB Atlas → Network Access → add this machine's IP (or 0.0.0.0/0)",
     '• Confirm ~/.config/Apilynx/.env or bundled config has MONGODB_URI',
   ];
   if (envPath) {
@@ -160,6 +167,10 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   stopMockServer();
   void shutdownDatabase();
+  if (staticServer) {
+    staticServer.close();
+    staticServer = null;
+  }
 });
 
 process.on('uncaughtException', (error) => {

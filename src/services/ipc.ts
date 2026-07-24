@@ -120,7 +120,7 @@ function getDefaultMockDB(): MockDB {
   };
 }
 
-/** Mock API for web-only development without Electron */
+/** Mock API for optional browser-only UI preview (never used in production desktop). */
 const mockAPI: ElectronAPI = {
   sendRequest: async (payload): Promise<ApiResponse> => {
     const start = Date.now();
@@ -759,11 +759,84 @@ const mockAPI: ElectronAPI = {
   getMockServerStatus: async () => ({ running: false, port: 0 }),
 };
 
+const DESKTOP_REQUIRED =
+  'Apilynx needs the desktop app for real data (MongoDB). Download it from the home page, or set NEXT_PUBLIC_ALLOW_BROWSER_MOCK=true only for local UI preview.';
+
+function rejectDesktopRequired(): Promise<never> {
+  return Promise.reject(new Error(DESKTOP_REQUIRED));
+}
+
+/** Browser preview without fake DB: real HTTP fetch only; persistence requires Electron. */
+const browserPreviewAPI: ElectronAPI = {
+  ...mockAPI,
+  sendRequest: mockAPI.sendRequest,
+  cancelRequest: mockAPI.cancelRequest,
+  getSettings: () => rejectDesktopRequired(),
+  updateSettings: () => rejectDesktopRequired(),
+  getCollections: () => rejectDesktopRequired(),
+  getCollection: () => rejectDesktopRequired(),
+  createCollection: () => rejectDesktopRequired(),
+  updateCollection: () => rejectDesktopRequired(),
+  deleteCollection: () => rejectDesktopRequired(),
+  getRequest: () => rejectDesktopRequired(),
+  getRequestsByCollection: () => rejectDesktopRequired(),
+  saveRequest: () => rejectDesktopRequired(),
+  deleteRequest: () => rejectDesktopRequired(),
+  getHistory: () => rejectDesktopRequired(),
+  addHistory: () => rejectDesktopRequired(),
+  deleteHistory: () => rejectDesktopRequired(),
+  clearHistory: () => rejectDesktopRequired(),
+  getEnvironments: () => rejectDesktopRequired(),
+  createEnvironment: () => rejectDesktopRequired(),
+  updateEnvironment: () => rejectDesktopRequired(),
+  deleteEnvironment: () => rejectDesktopRequired(),
+  register: () => rejectDesktopRequired(),
+  login: () => rejectDesktopRequired(),
+  loginWithGoogle: () => rejectDesktopRequired(),
+  isGoogleConfigured: async () => false,
+  logout: () => rejectDesktopRequired(),
+  getSession: async () => null,
+  updateProfile: () => rejectDesktopRequired(),
+  changePassword: () => rejectDesktopRequired(),
+  getProjects: () => rejectDesktopRequired(),
+  createProject: () => rejectDesktopRequired(),
+  createPersonalProject: () => rejectDesktopRequired(),
+  updateProject: () => rejectDesktopRequired(),
+  deleteProject: () => rejectDesktopRequired(),
+  inviteTeamToProject: () => rejectDesktopRequired(),
+  getProjectMembers: () => rejectDesktopRequired(),
+  addProjectMember: () => rejectDesktopRequired(),
+  removeProjectMember: () => rejectDesktopRequired(),
+  updateProjectMemberRole: () => rejectDesktopRequired(),
+  getPendingProjectInvites: async () => [],
+  getPendingTeamInvites: async () => [],
+  acceptProjectInvite: () => rejectDesktopRequired(),
+  declineProjectInvite: () => rejectDesktopRequired(),
+  acceptTeamInvite: () => rejectDesktopRequired(),
+  declineTeamInvite: () => rejectDesktopRequired(),
+  getTeams: () => rejectDesktopRequired(),
+  createTeam: () => rejectDesktopRequired(),
+  getTeamMembers: () => rejectDesktopRequired(),
+  addTeamMember: () => rejectDesktopRequired(),
+  removeTeamMember: () => rejectDesktopRequired(),
+  startMockServer: () => rejectDesktopRequired(),
+  stopMockServer: async () => {},
+  getMockServerStatus: async () => ({ running: false, port: 0 }),
+};
+
+/** When true, browser /app uses localStorage mock DB (local UI only — never for prod). */
+export function allowBrowserMock(): boolean {
+  return process.env.NEXT_PUBLIC_ALLOW_BROWSER_MOCK === 'true';
+}
+
 export function api(): ElectronAPI {
   if (typeof window !== 'undefined' && window.electronAPI) {
     return window.electronAPI;
   }
-  return mockAPI;
+  if (allowBrowserMock()) {
+    return mockAPI;
+  }
+  return browserPreviewAPI;
 }
 
 async function invoke<T>(fn: () => Promise<T>): Promise<T> {
