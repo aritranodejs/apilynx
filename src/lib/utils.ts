@@ -76,6 +76,20 @@ export function describeAuthSource(
 }
 
 export function createDefaultBody(type: BodyType = 'json'): ApiRequest['body'] {
+  if (type === 'graphql') {
+    return {
+      type: 'graphql',
+      content: JSON.stringify(
+        {
+          query: 'query {\n  __typename\n}',
+          variables: {},
+        },
+        null,
+        2
+      ),
+      formData: [createEmptyKeyValue()],
+    };
+  }
   return {
     type,
     content: type === 'json' ? '{\n  \n}' : '',

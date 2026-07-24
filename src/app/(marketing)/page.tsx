@@ -1,31 +1,14 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { DownloadGrid } from '@/components/marketing/download-grid';
+import { ComparisonTable } from '@/components/marketing/comparison-table';
+import { FEATURE_PILLARS } from '@/content/comparison';
 
 export const metadata: Metadata = {
   title: 'Apilynx — Modern API Client',
   description:
     'Build, test, and document HTTP APIs. A fast desktop alternative to Postman with collections, environments, and generated docs.',
 };
-
-const features = [
-  {
-    title: 'Send any request',
-    text: 'GET, POST, and more — with params, headers, JSON bodies, and auth in one place.',
-  },
-  {
-    title: 'Collections that stay organized',
-    text: 'Save endpoints into folders, switch environments, and run a whole collection in one go.',
-  },
-  {
-    title: 'Docs your team can read',
-    text: 'Turn a collection into clean, shareable API documentation — export when you are ready.',
-  },
-  {
-    title: 'Built for real API work',
-    text: 'Desktop app with no browser CORS headaches. History, mocks, and code snippets included.',
-  },
-];
 
 export default function LandingPage() {
   return (
@@ -120,16 +103,51 @@ export default function LandingPage() {
             Everything you need to work an API
           </h2>
           <p className="mt-3 max-w-2xl text-zinc-400">
-            From the first request to published docs — one clear workflow.
+            The same core workflows you know from Postman — requests, collections, environments,
+            tests, docs, mocks, and code snippets.
           </p>
-          <ul className="mt-14 grid gap-10 sm:grid-cols-2">
-            {features.map((f) => (
+          <ul className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURE_PILLARS.map((f) => (
               <li key={f.title} className="border-l border-orange-500/30 pl-5">
                 <h3 className="text-lg font-semibold text-zinc-100">{f.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-zinc-400">{f.text}</p>
               </li>
             ))}
           </ul>
+          <p className="mt-10 text-sm text-zinc-500">
+            Prefer a guided tour?{' '}
+            <Link href="/docs/examples/" className="text-orange-400 hover:underline">
+              Examples cookbook
+            </Link>
+            {' · '}
+            <Link href="/docs/features/" className="text-orange-400 hover:underline">
+              Features overview
+            </Link>
+          </p>
+        </div>
+      </section>
+
+      <section className="border-t border-white/5 bg-[#0a0b0f]">
+        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
+          <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight text-white">
+            How Apilynx compares
+          </h2>
+          <p className="mt-3 max-w-2xl text-zinc-400">
+            Side-by-side with Postman, Insomnia, Bruno, Thunder Client, and Hoppscotch.
+          </p>
+          <div className="mt-10">
+            <ComparisonTable />
+          </div>
+          <p className="mt-6 text-sm text-zinc-500">
+            Full write-up with migration tips:{' '}
+            <Link href="/docs/compare/" className="text-orange-400 hover:underline">
+              Compare API clients
+            </Link>
+            {' · '}
+            <Link href="/docs/graphql/" className="text-orange-400 hover:underline">
+              GraphQL guide
+            </Link>
+          </p>
         </div>
       </section>
 

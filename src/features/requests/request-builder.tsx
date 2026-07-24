@@ -198,7 +198,20 @@ export function RequestBuilder({ tabId, request, onSave }: RequestBuilderProps) 
           </div>
         )}
         {activeSection === 'body' && (
-          <BodyEditor body={request.body} onChange={(body) => update({ body })} />
+          <BodyEditor
+            body={request.body}
+            onChange={(body) => {
+              const shouldPost =
+                body.type === 'graphql' &&
+                (request.method === 'GET' ||
+                  request.method === 'HEAD' ||
+                  request.method === 'OPTIONS');
+              update({
+                body,
+                ...(shouldPost ? { method: 'POST' as const } : {}),
+              });
+            }}
+          />
         )}
         {activeSection === 'auth' && (
           <AuthEditor

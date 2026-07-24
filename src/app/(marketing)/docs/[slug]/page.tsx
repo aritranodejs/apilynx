@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { DownloadGrid } from '@/components/marketing/download-grid';
+import { ComparisonTable } from '@/components/marketing/comparison-table';
 import { DOC_SECTIONS, getDoc, type DocBlock } from '@/content/docs';
 
 type Props = { params: Promise<{ slug: string }> };
@@ -30,7 +31,7 @@ function DocBlockView({ block }: { block: DocBlock }) {
       {block.paragraphs.map((p, j) => (
         <p
           key={j}
-          className={`max-w-2xl text-[15px] leading-relaxed text-zinc-400 ${
+          className={`max-w-3xl text-[15px] leading-relaxed text-zinc-400 ${
             hasHeading || j > 0 ? 'mt-3' : ''
           }`}
         >
@@ -38,19 +39,45 @@ function DocBlockView({ block }: { block: DocBlock }) {
         </p>
       ))}
       {block.list && block.list.length > 0 && (
-        <ul className="mt-3 max-w-2xl list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-zinc-400">
+        <ul className="mt-3 max-w-3xl list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-zinc-400">
           {block.list.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
       )}
+      {block.table && (
+        <div className="mt-4 max-w-4xl overflow-x-auto rounded-md border border-white/10">
+          <table className="w-full min-w-[28rem] border-collapse text-left text-sm">
+            <thead className="bg-white/5 text-zinc-200">
+              <tr>
+                {block.table.headers.map((h) => (
+                  <th key={h} className="px-3 py-2.5 font-semibold">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {block.table.rows.map((row, ri) => (
+                <tr key={ri} className="border-t border-white/5 text-zinc-400">
+                  {row.map((cell, ci) => (
+                    <td key={`${ri}-${ci}`} className="px-3 py-2.5 align-top">
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {block.code && (
-        <pre className="mt-4 overflow-x-auto rounded-md border border-white/10 bg-black/50 p-4 font-mono text-[13px] leading-relaxed text-zinc-300">
+        <pre className="mt-4 max-w-3xl overflow-x-auto rounded-md border border-white/10 bg-black/50 p-4 font-mono text-[13px] leading-relaxed text-zinc-300">
           <code>{block.code}</code>
         </pre>
       )}
       {block.callout && (
-        <p className="mt-4 max-w-2xl border-l-2 border-orange-500/50 bg-orange-500/5 px-4 py-3 text-sm leading-relaxed text-zinc-300">
+        <p className="mt-4 max-w-3xl border-l-2 border-orange-500/50 bg-orange-500/5 px-4 py-3 text-sm leading-relaxed text-zinc-300">
           {block.callout}
         </p>
       )}
@@ -86,6 +113,21 @@ export default async function DocPage({ params }: Props) {
           <DocBlockView key={i} block={block} />
         ))}
       </div>
+
+      {slug === 'compare' && (
+        <div className="mt-10">
+          <h2 className="text-xl font-semibold tracking-tight text-zinc-100">
+            Detailed comparison table
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm text-zinc-500">
+            Apilynx vs Postman, Insomnia, Bruno, Thunder Client, and Hoppscotch. Scroll
+            horizontally on smaller screens.
+          </p>
+          <div className="mt-5">
+            <ComparisonTable />
+          </div>
+        </div>
+      )}
 
       <nav className="mt-16 flex flex-col gap-4 border-t border-white/10 pt-8 sm:flex-row sm:justify-between">
         {prev ? (
