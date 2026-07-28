@@ -22,3 +22,25 @@ export function joinUrl(base: string, pathPart: string): string {
   if (!p) return b;
   return `${b}/${p}`;
 }
+
+/**
+ * Normalize a public site URL for metadata and Open Graph.
+ * Accepts bare hostnames (e.g. apilynx.vercel.app) and adds https:// automatically.
+ */
+export function normalizeSiteUrl(raw: string, fallback = 'http://localhost:3000'): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return fallback;
+
+  let candidate = trimmed;
+  if (!/^https?:\/\//i.test(candidate)) {
+    const isLocal = /^(localhost|127\.0\.0\.1)(:|\/|$)/i.test(candidate);
+    candidate = `${isLocal ? 'http' : 'https'}://${candidate.replace(/^\/+/, '')}`;
+  }
+
+  try {
+    const parsed = new URL(candidate);
+    return parsed.origin;
+  } catch {
+    return fallback;
+  }
+}
