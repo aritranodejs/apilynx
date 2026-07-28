@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { HeroSection } from '@/components/marketing/hero-section';
 import { FeaturePillarsGrid } from '@/components/marketing/animated-grids';
 import { AnimatedComparisonBlock, AnimatedDownloadBlock } from '@/components/marketing/animated-sections';
+import { DownloadGrid } from '@/components/marketing/download-grid';
 import { ParallaxSection } from '@/components/marketing/parallax-section';
 import { CtaBanner, WhySwitchSection, WorkflowSection } from '@/components/marketing/growth-sections';
 import { SITE_URL } from '@/content/downloads';
@@ -108,7 +109,9 @@ export default function LandingPage() {
               Pick your platform, install like any other app, and start sending requests.
             </p>
           </Reveal>
-          <AnimatedDownloadBlock />
+          <AnimatedDownloadBlock>
+            <DownloadGrid />
+          </AnimatedDownloadBlock>
           <Reveal delay={200} className="mt-10 text-sm text-zinc-500">
             Want a walkthrough?{' '}
             <Link href="/docs/download/" className="text-orange-400 hover:underline">

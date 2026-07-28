@@ -1,28 +1,48 @@
-import { env, envBool, joinUrl, normalizeSiteUrl } from '@/lib/env';
+import { joinUrl, normalizeSiteUrl } from '@/lib/env';
 
-export const APP_NAME = env('NEXT_PUBLIC_APP_NAME', 'Apilynx');
-export const APP_VERSION = env('NEXT_PUBLIC_APP_VERSION', '1.0.1');
-export const SITE_URL = normalizeSiteUrl(env('NEXT_PUBLIC_SITE_URL'), 'http://localhost:3000');
-export const GITHUB_REPO = env('NEXT_PUBLIC_GITHUB_REPO', 'aritranodejs/apilynx');
+/**
+ * Read NEXT_PUBLIC_* with static process.env.NAME access.
+ * Dynamic process.env[key] is NOT inlined into client bundles by Next.js,
+ * which made the homepage download section always show "Coming soon"
+ * while the server-rendered docs page looked correct.
+ */
+function publicEnv(value: string | undefined, fallback = ''): string {
+  if (value === undefined || value === null) return fallback;
+  return String(value).trim();
+}
+
+function publicEnvBool(value: string | undefined, fallback = false): boolean {
+  const normalized = publicEnv(value).toLowerCase();
+  if (!normalized) return fallback;
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
+  return fallback;
+}
+
+export const APP_NAME = publicEnv(process.env.NEXT_PUBLIC_APP_NAME, 'Apilynx');
+export const APP_VERSION = publicEnv(process.env.NEXT_PUBLIC_APP_VERSION, '1.0.1');
+export const SITE_URL = normalizeSiteUrl(
+  publicEnv(process.env.NEXT_PUBLIC_SITE_URL),
+  'http://localhost:3000'
+);
+export const GITHUB_REPO = publicEnv(
+  process.env.NEXT_PUBLIC_GITHUB_REPO,
+  'aritranodejs/apilynx'
+);
 
 export const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
 export const GITHUB_LATEST_RELEASE_URL = `${GITHUB_RELEASES_URL}/latest`;
 
 /** Master switch from .env — false hides live download links. */
-export const DOWNLOADS_LIVE = envBool('NEXT_PUBLIC_DOWNLOADS_LIVE', false);
+export const DOWNLOADS_LIVE = publicEnvBool(process.env.NEXT_PUBLIC_DOWNLOADS_LIVE, false);
 
-const DOWNLOAD_BASE_URL = env('NEXT_PUBLIC_DOWNLOAD_BASE_URL', '/downloads');
-
-function filename(envKey: string, fallback: string): string {
-  return env(envKey, fallback);
-}
+const DOWNLOAD_BASE_URL = publicEnv(process.env.NEXT_PUBLIC_DOWNLOAD_BASE_URL, '/downloads');
 
 /**
  * Prefer explicit URL from env; otherwise BASE + filename.
  * Returns empty string when nothing usable is configured.
  */
-function resolveDownloadUrl(explicitEnvKey: string, file: string): string {
-  const explicit = env(explicitEnvKey);
+function resolveDownloadUrl(explicit: string, file: string): string {
   if (explicit) return explicit;
   if (!DOWNLOAD_BASE_URL) return '';
   return joinUrl(DOWNLOAD_BASE_URL, file);
@@ -50,10 +70,10 @@ function build(
   id: string,
   label: string,
   file: string,
-  urlEnvKey: string,
+  explicitUrl: string,
   note?: string
 ): DownloadBuild {
-  const href = resolveDownloadUrl(urlEnvKey, file);
+  const href = resolveDownloadUrl(explicitUrl, file);
   return {
     id,
     label,
@@ -64,24 +84,24 @@ function build(
   };
 }
 
-const winFile = filename(
-  'NEXT_PUBLIC_DOWNLOAD_WINDOWS_FILENAME',
+const winFile = publicEnv(
+  process.env.NEXT_PUBLIC_DOWNLOAD_WINDOWS_FILENAME,
   `Apilynx-Setup-${APP_VERSION}.exe`
 );
-const macArmFile = filename(
-  'NEXT_PUBLIC_DOWNLOAD_MAC_ARM_FILENAME',
+const macArmFile = publicEnv(
+  process.env.NEXT_PUBLIC_DOWNLOAD_MAC_ARM_FILENAME,
   `Apilynx-${APP_VERSION}-arm64.dmg`
 );
-const macIntelFile = filename(
-  'NEXT_PUBLIC_DOWNLOAD_MAC_INTEL_FILENAME',
+const macIntelFile = publicEnv(
+  process.env.NEXT_PUBLIC_DOWNLOAD_MAC_INTEL_FILENAME,
   `Apilynx-${APP_VERSION}-x64.dmg`
 );
-const linuxDebFile = filename(
-  'NEXT_PUBLIC_DOWNLOAD_LINUX_DEB_FILENAME',
+const linuxDebFile = publicEnv(
+  process.env.NEXT_PUBLIC_DOWNLOAD_LINUX_DEB_FILENAME,
   `apilynx_${APP_VERSION}_amd64.deb`
 );
-const linuxAppImageFile = filename(
-  'NEXT_PUBLIC_DOWNLOAD_LINUX_APPIMAGE_FILENAME',
+const linuxAppImageFile = publicEnv(
+  process.env.NEXT_PUBLIC_DOWNLOAD_LINUX_APPIMAGE_FILENAME,
   `Apilynx-${APP_VERSION}.AppImage`
 );
 
@@ -95,7 +115,7 @@ export const DOWNLOAD_PLATFORMS: DownloadPlatform[] = [
         'windows-exe',
         'Download for Windows',
         winFile,
-        'NEXT_PUBLIC_DOWNLOAD_WINDOWS_URL',
+        publicEnv(process.env.NEXT_PUBLIC_DOWNLOAD_WINDOWS_URL),
         'Installer · 64-bit'
       ),
     ],
@@ -114,14 +134,14 @@ export const DOWNLOAD_PLATFORMS: DownloadPlatform[] = [
         'mac-arm',
         'Download for Apple Silicon',
         macArmFile,
-        'NEXT_PUBLIC_DOWNLOAD_MAC_ARM_URL',
+        publicEnv(process.env.NEXT_PUBLIC_DOWNLOAD_MAC_ARM_URL),
         'M1, M2, M3, M4'
       ),
       build(
         'mac-intel',
         'Download for Intel',
         macIntelFile,
-        'NEXT_PUBLIC_DOWNLOAD_MAC_INTEL_URL',
+        publicEnv(process.env.NEXT_PUBLIC_DOWNLOAD_MAC_INTEL_URL),
         'Intel Mac'
       ),
     ],
@@ -141,14 +161,14 @@ export const DOWNLOAD_PLATFORMS: DownloadPlatform[] = [
         'linux-deb',
         'Download .deb (Ubuntu / Debian)',
         linuxDebFile,
-        'NEXT_PUBLIC_DOWNLOAD_LINUX_DEB_URL',
+        publicEnv(process.env.NEXT_PUBLIC_DOWNLOAD_LINUX_DEB_URL),
         'Software Center friendly'
       ),
       build(
         'linux-appimage',
         'Download AppImage (portable)',
         linuxAppImageFile,
-        'NEXT_PUBLIC_DOWNLOAD_LINUX_APPIMAGE_URL',
+        publicEnv(process.env.NEXT_PUBLIC_DOWNLOAD_LINUX_APPIMAGE_URL),
         'No install needed'
       ),
     ],
