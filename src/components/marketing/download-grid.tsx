@@ -43,7 +43,7 @@ export function DownloadGrid({ compact = false }: Props) {
         {DOWNLOAD_PLATFORMS.map((platform) => (
           <li
             key={platform.id}
-            className="flex flex-col border border-white/10 bg-black/30 p-5 sm:p-6"
+            className="lynx-download-card flex flex-col border border-white/10 bg-black/30 p-5 sm:p-6"
           >
             <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold text-white">
               {platform.name}
