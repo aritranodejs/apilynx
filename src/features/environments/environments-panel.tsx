@@ -292,7 +292,7 @@ export function EnvironmentSelector() {
     <select
       value={activeEnvironmentId ?? environments[0]?.id ?? ''}
       onChange={(e) => setActiveEnvironment(e.target.value)}
-      className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs text-zinc-100 focus:border-orange-500 focus:outline-none max-w-[160px] truncate"
+      className="max-w-[7rem] truncate rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs text-zinc-100 focus:border-orange-500 focus:outline-none sm:max-w-[160px]"
       title="Active environment"
     >
       {environments.map((env) => (

@@ -46,8 +46,8 @@ function DocBlockView({ block }: { block: DocBlock }) {
         </ul>
       )}
       {block.table && (
-        <div className="mt-4 max-w-4xl overflow-x-auto rounded-md border border-white/10">
-          <table className="w-full min-w-[28rem] border-collapse text-left text-sm">
+        <div className="mt-4 w-full max-w-full overflow-x-auto rounded-md border border-white/10">
+          <table className="w-full min-w-[20rem] border-collapse text-left text-sm sm:min-w-[28rem]">
             <thead className="bg-white/5 text-zinc-200">
               <tr>
                 {block.table.headers.map((h) => (

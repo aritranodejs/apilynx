@@ -42,15 +42,15 @@ export function ProjectSelector({ onOpenSettings }: ProjectSelectorProps) {
 
   return (
     <>
-      <div className="flex items-center gap-1.5 ml-2">
-        <FolderKanban className="h-3.5 w-3.5 text-zinc-500" />
+      <div className="flex items-center gap-1.5 ml-1 min-w-0 sm:ml-2">
+        <FolderKanban className="hidden h-3.5 w-3.5 shrink-0 text-zinc-500 sm:block" />
         <Select
           value={activeProjectId ?? ''}
           onChange={(e) => {
             setActiveProject(e.target.value);
             void queryClient.invalidateQueries({ queryKey: ['collections'] });
           }}
-          className="text-xs h-7 max-w-[180px]"
+          className="h-7 max-w-[7.5rem] min-w-0 truncate text-xs sm:max-w-[180px]"
         >
           {projects.map((p) => (
             <option key={p.id} value={p.id}>

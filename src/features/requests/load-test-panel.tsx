@@ -16,9 +16,11 @@ import {
   methodAllowsBody,
   normalizeRequestUrl,
   prepareAuthForRequest,
+  validateRequestUrl,
 } from '@/lib/utils';
 import type { SendRequestPayload } from '@/types';
 import { Play, Square } from 'lucide-react';
+import { showError } from '@/stores/toast-store';
 
 interface LoadTestPanelProps {
   request: ApiRequest;
@@ -47,6 +49,12 @@ export function LoadTestPanel({ request, resolvedUrl }: LoadTestPanelProps) {
   const [abort, setAbort] = useState(false);
 
   const runLoadTest = async () => {
+    const check = validateRequestUrl(resolvedUrl);
+    if (!check.valid) {
+      showError(check.error ?? 'Enter a valid URL before running a load test');
+      return;
+    }
+
     setRunning(true);
     setAbort(false);
     setResults([]);
@@ -111,6 +119,7 @@ export function LoadTestPanel({ request, resolvedUrl }: LoadTestPanelProps) {
   const success = results.filter((r) => r.ok).length;
   const sorted = [...durations].sort((a, b) => a - b);
   const p95 = sorted.length ? sorted[Math.floor(sorted.length * 0.95)] ?? sorted[sorted.length - 1] : 0;
+  const urlCheck = validateRequestUrl(resolvedUrl);
 
   return (
     <div className="p-4 space-y-4">
@@ -140,14 +149,19 @@ export function LoadTestPanel({ request, resolvedUrl }: LoadTestPanelProps) {
           />
         </div>
       </div>
-      <div className="text-xs font-mono text-zinc-500 truncate">→ {resolvedUrl}</div>
+      <div className="truncate font-mono text-xs text-zinc-500">
+        → {resolvedUrl.trim() || '(no URL — enter one in the request bar above)'}
+      </div>
+      {!urlCheck.valid && resolvedUrl.trim() ? (
+        <p className="text-xs text-amber-400">{urlCheck.error}</p>
+      ) : null}
       <div className="flex gap-2">
         {running ? (
           <Button variant="danger" onClick={() => setAbort(true)}>
             <Square className="h-4 w-4" /> Stop
           </Button>
         ) : (
-          <Button variant="primary" onClick={() => void runLoadTest()}>
+          <Button variant="primary" onClick={() => void runLoadTest()} disabled={!urlCheck.valid}>
             <Play className="h-4 w-4" /> Run load test
           </Button>
         )}

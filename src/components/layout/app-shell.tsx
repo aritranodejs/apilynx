@@ -54,7 +54,7 @@ import { SHORTCUTS, useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 
 export function AppShell() {
   const { tabs, activeTabId, addTab, closeTab, setActiveTab } = useTabsStore();
-  const { sidebarCollapsed, activeSidebarPanel, toggleSidebar, setActiveSidebarPanel } =
+  const { sidebarCollapsed, activeSidebarPanel, toggleSidebar, setActiveSidebarPanel, setSidebarCollapsed } =
     useUIStore();
   const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
@@ -70,6 +70,8 @@ export function AppShell() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [isElectron, setIsElectron] = useState(true);
   const [isReady, setIsReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isPhone, setIsPhone] = useState(false);
   const { send } = useSendRequest();
 
   const { data: projectInvites = [] } = useQuery({
@@ -107,6 +109,27 @@ export function AppShell() {
   useEffect(() => {
     if (isReady && tabs.length === 0) addTab();
   }, [isReady, tabs.length, addTab]);
+
+  useEffect(() => {
+    const mobileMedia = window.matchMedia('(max-width: 1023px)');
+    const phoneMedia = window.matchMedia('(max-width: 767px)');
+
+    const syncLayout = () => {
+      const mobile = mobileMedia.matches;
+      const phone = phoneMedia.matches;
+      setIsMobile(mobile);
+      setIsPhone(phone);
+      if (mobile) setSidebarCollapsed(true);
+    };
+
+    syncLayout();
+    mobileMedia.addEventListener('change', syncLayout);
+    phoneMedia.addEventListener('change', syncLayout);
+    return () => {
+      mobileMedia.removeEventListener('change', syncLayout);
+      phoneMedia.removeEventListener('change', syncLayout);
+    };
+  }, [setSidebarCollapsed]);
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
   const updateTabRequest = useTabsStore((s) => s.updateTabRequest);
@@ -171,14 +194,14 @@ export function AppShell() {
 
   if (!isReady) {
     return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950 text-zinc-400">
+      <div className="flex h-dvh items-center justify-center bg-zinc-950 text-zinc-400">
         Loading Apilynx...
       </div>
     );
   }
 
   return (
-    <div className="apilynx-app-shell flex flex-col h-screen af-surface">
+    <div className="flex flex-col h-dvh min-h-0 af-surface apilynx-app-shell">
       {!isElectron && (
         <div className="shrink-0 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span>You&apos;re trying Apilynx in the browser. For the full experience,</span>
@@ -188,79 +211,88 @@ export function AppShell() {
           <span>.</span>
         </div>
       )}
-      <header className="flex items-center gap-3 border-b af-border px-4 py-2 shrink-0 af-surface-2">
-        <a href="/" className="flex items-center gap-2 shrink-0 rounded hover:opacity-90" title="Home">
-          <img src={assetPath('icon.png')} alt="" className="h-6 w-6 rounded" />
-          <span className="font-semibold text-sm">Apilynx</span>
-        </a>
-        {!isElectron && (
-          <a
-            href="/docs/"
-            className="hidden sm:inline text-xs text-zinc-500 hover:text-orange-400 transition-colors"
-          >
-            Docs
+      <header className="shrink-0 border-b af-border af-surface-2">
+        <div className="flex items-center gap-2 px-3 py-2 sm:px-4">
+          <a href="/" className="flex shrink-0 items-center gap-2 rounded hover:opacity-90" title="Home">
+            <img src={assetPath('icon.png')} alt="" className="h-6 w-6 rounded" />
+            <span className="hidden font-semibold text-sm sm:inline">Apilynx</span>
           </a>
-        )}
-        <ProjectSelector onOpenSettings={() => setShowWorkspace(true)} />
-        <EnvironmentSelector />
-        <div className="ml-auto flex items-center gap-2">
-          {activeTab && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSave(true)}
-              title="Save to collection (Ctrl+S)"
+          {!isElectron && (
+            <a
+              href="/docs/"
+              className="hidden text-xs text-zinc-500 transition-colors hover:text-orange-400 md:inline"
             >
-              <Save className="h-4 w-4" />
-            </Button>
+              Docs
+            </a>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowShortcuts(true)}
-            title="Keyboard shortcuts (Ctrl+/)"
-            className="text-xs text-zinc-500"
-          >
-            ?
-          </Button>
-          {user && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowInvitations(true)}
-              title="Invitations"
-              className="relative"
-            >
-              <Bell className="h-4 w-4" />
-              {inviteCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[9px] font-bold text-white">
-                  {inviteCount}
-                </span>
-              )}
-            </Button>
-          )}
-          {user ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowProfile(true)}
-                className="text-xs text-zinc-300 hover:text-orange-400 max-w-[140px] truncate transition-colors"
-                title="My profile"
+          <div className="hidden min-w-0 items-center gap-2 md:flex">
+            <ProjectSelector onOpenSettings={() => setShowWorkspace(true)} />
+            <EnvironmentSelector />
+          </div>
+          <div className="ml-auto flex items-center gap-1 sm:gap-2">
+            {activeTab && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSave(true)}
+                title="Save to collection (Ctrl+S)"
               >
-                {user.name}
-              </button>
-              <Button variant="ghost" size="sm" onClick={() => void handleLogout()} title="Sign out">
-                <LogOut className="h-4 w-4" />
+                <Save className="h-4 w-4" />
               </Button>
-            </div>
-          ) : (
-            <Button variant="ghost" size="sm" onClick={() => setShowAuth(true)}>
-              <LogIn className="h-4 w-4" /> Sign in
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowShortcuts(true)}
+              title="Keyboard shortcuts (Ctrl+/)"
+              className="text-xs text-zinc-500"
+            >
+              ?
             </Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={() => setShowSettings(true)}>
-            <Settings className="h-4 w-4" />
-          </Button>
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowInvitations(true)}
+                title="Invitations"
+                className="relative"
+              >
+                <Bell className="h-4 w-4" />
+                {inviteCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[9px] font-bold text-white">
+                    {inviteCount}
+                  </span>
+                )}
+              </Button>
+            )}
+            {user ? (
+              <div className="flex items-center gap-1 sm:gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowProfile(true)}
+                  className="hidden max-w-[140px] truncate text-xs text-zinc-300 transition-colors hover:text-orange-400 sm:inline"
+                  title="My profile"
+                >
+                  {user.name}
+                </button>
+                <Button variant="ghost" size="sm" onClick={() => void handleLogout()} title="Sign out">
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <Button variant="ghost" size="sm" onClick={() => setShowAuth(true)} title="Sign in">
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign in</span>
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => setShowSettings(true)} title="Settings">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 border-t af-border px-3 py-1.5 md:hidden sm:gap-2 sm:px-4">
+          <ProjectSelector onOpenSettings={() => setShowWorkspace(true)} />
+          <EnvironmentSelector />
         </div>
       </header>
 
@@ -300,12 +332,24 @@ export function AppShell() {
         </Button>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="relative flex min-h-0 flex-1 overflow-hidden">
+        {!sidebarCollapsed && isMobile && (
+          <button
+            type="button"
+            className="absolute inset-0 z-40 bg-black/60 lg:hidden"
+            aria-label="Close sidebar"
+            onClick={() => setSidebarCollapsed(true)}
+          />
+        )}
         {!sidebarCollapsed && (
           <div
             className={cn(
-              'flex shrink-0 border-r border-zinc-800',
-              activeSidebarPanel === 'documentation' ? 'w-[22rem]' : 'w-80'
+              'flex shrink-0 border-r border-zinc-800 bg-zinc-950',
+              isMobile
+                ? 'absolute inset-y-0 left-0 z-50 max-w-[min(20rem,88vw)] shadow-2xl'
+                : activeSidebarPanel === 'documentation'
+                  ? 'w-[22rem]'
+                  : 'w-80'
             )}
           >
             <div className="flex flex-col w-12 border-r border-zinc-800 bg-zinc-900/30">
@@ -336,26 +380,46 @@ export function AppShell() {
           </div>
         )}
 
-        <div className="flex-1 overflow-hidden">
+        <div className="min-w-0 flex-1 overflow-hidden">
           {activeTab ? (
-            <PanelGroup direction="vertical">
-              <Panel defaultSize={55} minSize={25}>
-                <RequestBuilder
-                  tabId={activeTab.id}
-                  request={activeTab.request}
-                  onSave={() => setShowSave(true)}
-                />
-              </Panel>
-              <PanelResizeHandle className="h-1 bg-zinc-800 hover:bg-orange-500/50 transition-colors" />
-              <Panel defaultSize={45} minSize={15}>
-                <ResponseViewer
-                  response={activeTab.response}
-                  isLoading={activeTab.isLoading}
-                  request={activeTab.request}
-                  onSaveExample={handleSaveExample}
-                />
-              </Panel>
-            </PanelGroup>
+            isPhone ? (
+              <div className="flex h-full flex-col">
+                <div className="min-h-0 flex-1 overflow-hidden">
+                  <RequestBuilder
+                    tabId={activeTab.id}
+                    request={activeTab.request}
+                    onSave={() => setShowSave(true)}
+                  />
+                </div>
+                <div className="min-h-0 flex-1 overflow-hidden border-t border-zinc-800">
+                  <ResponseViewer
+                    response={activeTab.response}
+                    isLoading={activeTab.isLoading}
+                    request={activeTab.request}
+                    onSaveExample={handleSaveExample}
+                  />
+                </div>
+              </div>
+            ) : (
+              <PanelGroup direction="vertical">
+                <Panel defaultSize={55} minSize={25}>
+                  <RequestBuilder
+                    tabId={activeTab.id}
+                    request={activeTab.request}
+                    onSave={() => setShowSave(true)}
+                  />
+                </Panel>
+                <PanelResizeHandle className="h-1 bg-zinc-800 transition-colors hover:bg-orange-500/50" />
+                <Panel defaultSize={45} minSize={15}>
+                  <ResponseViewer
+                    response={activeTab.response}
+                    isLoading={activeTab.isLoading}
+                    request={activeTab.request}
+                    onSaveExample={handleSaveExample}
+                  />
+                </Panel>
+              </PanelGroup>
+            )
           ) : (
             <div className="flex items-center justify-center h-full text-zinc-500">
               Create a new request to get started
@@ -388,7 +452,7 @@ export function AppShell() {
         </div>
       </Modal>
 
-      <footer className="shrink-0 border-t af-border px-4 py-1.5 text-center text-xs af-text-muted">
+      <footer className="hidden shrink-0 border-t af-border px-3 py-1.5 text-center text-[10px] af-text-muted sm:block sm:px-4 sm:text-xs">
         Developed By Aritra Dutta
       </footer>
     </div>

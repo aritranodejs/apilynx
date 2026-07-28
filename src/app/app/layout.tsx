@@ -3,5 +3,5 @@ export default function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="h-full min-h-0 overflow-hidden">{children}</div>;
+  return <div className="h-dvh min-h-0 overflow-hidden">{children}</div>;
 }

@@ -137,44 +137,50 @@ export const ResponseViewer = memo(function ResponseViewer({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-4 border-b border-zinc-800 px-4 py-2 text-sm">
-        <span className={`font-semibold ${getStatusColor(response.status)}`}>
+      <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 px-3 py-2 text-xs sm:gap-4 sm:px-4 sm:text-sm">
+        <span className={`shrink-0 font-semibold ${getStatusColor(response.status)}`}>
           {response.status} {response.statusText}
         </span>
-        <span className="text-zinc-500">{formatDuration(response.duration)}</span>
-        <span className="text-zinc-500">{formatBytes(response.size)}</span>
-        <div className="ml-auto flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
+        <span className="shrink-0 text-zinc-500">{formatDuration(response.duration)}</span>
+        <span className="shrink-0 text-zinc-500">{formatBytes(response.size)}</span>
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          <div className="relative hidden sm:block">
+            <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search..."
-              className="pl-8 w-40 h-8 text-xs"
+              className="h-8 w-40 pl-8 text-xs"
             />
           </div>
-          <Button variant="ghost" size="sm" onClick={() => void handleCopy()}>
+          <Button variant="ghost" size="sm" onClick={() => void handleCopy()} title="Copy response">
             <Copy className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleDownload}>
+          <Button variant="ghost" size="sm" onClick={handleDownload} title="Download response">
             <Download className="h-3.5 w-3.5" />
           </Button>
           {onSaveExample && response.body && (
-            <Button variant="ghost" size="sm" onClick={() => onSaveExample(response.body)} title="Save as example response">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onSaveExample(response.body)}
+              title="Save as example response"
+              className="hidden sm:inline-flex"
+            >
               Save example
             </Button>
           )}
         </div>
       </div>
 
-      <div className="flex border-b border-zinc-800">
+      <div className="flex shrink-0 overflow-x-auto border-b border-zinc-800">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className={`px-4 py-2 text-sm ${
+            className={`shrink-0 whitespace-nowrap px-3 py-2 text-xs sm:px-4 sm:text-sm ${
               activeTab === t.id
-                ? 'text-orange-400 border-b-2 border-orange-400'
+                ? 'border-b-2 border-orange-400 text-orange-400'
                 : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >

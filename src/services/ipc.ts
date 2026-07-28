@@ -23,7 +23,7 @@ import type {
   User,
 } from '@/types/auth';
 import type { ElectronAPI } from '@/types/electron-api';
-import { createEmptyKeyValue, generateId, methodAllowsBody, normalizeRequestUrl } from '@/lib/utils';
+import { createEmptyKeyValue, generateId, methodAllowsBody, normalizeRequestUrl, validateRequestUrl } from '@/lib/utils';
 
 function getAPI(): ElectronAPI {
   if (typeof window !== 'undefined' && window.electronAPI) {
@@ -125,6 +125,18 @@ const mockAPI: ElectronAPI = {
   sendRequest: async (payload): Promise<ApiResponse> => {
     const start = Date.now();
     const url = normalizeRequestUrl(payload.url);
+    const urlCheck = validateRequestUrl(url);
+    if (!urlCheck.valid) {
+      const message = urlCheck.error ?? 'Invalid request URL';
+      return {
+        status: 0,
+        statusText: 'Invalid URL',
+        headers: {},
+        body: message,
+        size: message.length,
+        duration: Date.now() - start,
+      };
+    }
     const canHaveBody = methodAllowsBody(payload.method);
     const reqBody =
       canHaveBody && typeof payload.body === 'string' && payload.body.length > 0

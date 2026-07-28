@@ -156,12 +156,230 @@ body:has(.apilynx-app-shell) {
   }
 }
 
+.lynx-live-dot {
+  animation: lynx-live-pulse 1.6s ease-in-out infinite;
+}
+
+.lynx-type-cursor {
+  animation: lynx-cursor-blink 0.9s step-end infinite;
+}
+
+.lynx-send-pulse {
+  animation: lynx-send-glow 0.85s ease-in-out infinite;
+}
+
+.lynx-response-in {
+  animation: lynx-fade-up 0.35s ease-out both;
+}
+
+.lynx-log-row {
+  animation: lynx-fade-up 0.4s ease-out both;
+}
+
+.lynx-hero-demo {
+  animation: lynx-fade-up 0.8s ease-out both;
+}
+
+.lynx-hero-demo-wrap {
+  animation: lynx-fade-up 0.8s ease-out both;
+}
+
+.lynx-hero-demo-glow {
+  background: conic-gradient(from 0deg, transparent, rgba(249, 115, 22, 0.25), transparent 30%);
+  animation: lynx-glow-rotate 8s linear infinite;
+}
+
+.lynx-scan-line {
+  animation: lynx-scan 4s ease-in-out infinite;
+}
+
+.lynx-url-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.4) 0%,
+    rgba(249, 115, 22, 0.08) 50%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  background-size: 200% 100%;
+  animation: lynx-shimmer 2s ease-in-out infinite;
+}
+
+.lynx-method-badge {
+  animation: lynx-method-pop 0.45s ease-out both;
+}
+
+.lynx-status-pop {
+  animation: lynx-status-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.lynx-json-line {
+  animation: lynx-json-in 0.35s ease-out both;
+  opacity: 0;
+}
+
+.lynx-log-flash {
+  animation: lynx-log-flash 1.2s ease-out both;
+}
+
+.lynx-dots span {
+  animation: lynx-dot-bounce 0.9s ease-in-out infinite;
+}
+
+.lynx-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.lynx-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.lynx-progress-bar {
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.5);
+}
+
+@keyframes lynx-glow-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes lynx-scan {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(280px);
+    opacity: 0;
+  }
+}
+
+@keyframes lynx-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes lynx-method-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes lynx-status-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes lynx-json-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes lynx-log-flash {
+  0% {
+    background-color: rgba(249, 115, 22, 0.22);
+  }
+  100% {
+    background-color: rgba(249, 115, 22, 0.05);
+  }
+}
+
+@keyframes lynx-dot-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lynx-fade-up,
   .lynx-request-row,
   .lynx-hero-glow,
-  .lynx-request-plane {
+  .lynx-request-plane,
+  .lynx-live-dot,
+  .lynx-type-cursor,
+  .lynx-send-pulse,
+  .lynx-response-in,
+  .lynx-log-row,
+  .lynx-hero-demo,
+  .lynx-hero-demo-wrap,
+  .lynx-hero-demo-glow,
+  .lynx-scan-line,
+  .lynx-url-shimmer,
+  .lynx-method-badge,
+  .lynx-status-pop,
+  .lynx-json-line,
+  .lynx-log-flash,
+  .lynx-dots span {
     animation: none !important;
     opacity: 1;
+    transform: none;
+    background-position: 0 0;
+  }
+}
+
+@keyframes lynx-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes lynx-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes lynx-send-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(249, 115, 22, 0);
   }
 }

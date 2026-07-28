@@ -235,4 +235,16 @@ export const FEATURE_PILLARS = [
     title: 'Mock server',
     text: 'Stub routes locally so frontend work continues while the real API is still in progress.',
   },
+  {
+    title: 'Teams & workspaces',
+    text: 'Create workspaces, invite teammates, and keep collections organized per project — optional sign-in for cloud sync.',
+  },
+  {
+    title: 'Load testing',
+    text: 'Open the Load Test tab on any request to fire concurrent calls and see latency stats before you ship.',
+  },
+  {
+    title: 'Import cURL & tabs',
+    text: 'Paste a curl command to build a full request in one click. Work across multiple tabs with keyboard shortcuts.',
+  },
 ];

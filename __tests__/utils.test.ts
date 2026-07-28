@@ -8,6 +8,7 @@ import {
   applyAuthToHeaders,
   headersFromKeyValues,
   prepareAuthForRequest,
+  validateRequestUrl,
 } from '@/lib/utils';
 import { generateCode } from '@/lib/code-generator';
 import { sanitizeResponseContent, maskSecret } from '@/lib/security';
@@ -60,6 +61,12 @@ describe('utils', () => {
       USER_ID: '42',
     });
     expect(result).toBe('http://localhost:3000/api/42');
+  });
+
+  it('validates request URLs', () => {
+    expect(validateRequestUrl('').valid).toBe(false);
+    expect(validateRequestUrl('https://api.example.com/users').valid).toBe(true);
+    expect(validateRequestUrl('https://api.example.com/{{BASE_URL}}').valid).toBe(false);
   });
 
   it('validates JSON', () => {

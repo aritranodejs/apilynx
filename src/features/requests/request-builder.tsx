@@ -122,11 +122,11 @@ export function RequestBuilder({ tabId, request, onSave }: RequestBuilderProps) 
         isSaved={!!request.collectionId}
       />
 
-      <div className="flex items-center gap-2 border-b border-zinc-800 p-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 p-3">
         <Select
           value={request.method}
           onChange={(e) => update({ method: e.target.value as HttpMethod })}
-          className={`w-28 font-semibold ${methodColor(request.method)}`}
+          className={`w-24 shrink-0 font-semibold sm:w-28 ${methodColor(request.method)}`}
         >
           {HTTP_METHODS.map((m) => (
             <option key={m} value={m}>
@@ -138,21 +138,32 @@ export function RequestBuilder({ tabId, request, onSave }: RequestBuilderProps) 
           value={request.url}
           onChange={(e) => update({ url: e.target.value })}
           placeholder="https://api.example.com/{{BASE_URL}}"
-          className="flex-1 font-mono text-sm"
+          className="min-w-0 flex-1 basis-full font-mono text-sm sm:basis-auto"
         />
-        {isLoading ? (
-          <Button variant="danger" onClick={cancel}>
-            <Square className="h-4 w-4" /> Cancel
+        <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto">
+          {isLoading ? (
+            <Button variant="danger" onClick={cancel} className="flex-1 sm:flex-none">
+              <Square className="h-4 w-4" />
+              <span className="hidden sm:inline">Cancel</span>
+            </Button>
+          ) : (
+            <Button variant="primary" onClick={() => void send(tabId)} className="flex-1 sm:flex-none">
+              <Send className="h-4 w-4" />
+              <span className="hidden sm:inline">Send</span>
+            </Button>
+          )}
+          {isLoading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-orange-400" />}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowImportCurl(true)}
+            title="Import cURL"
+            className="shrink-0"
+          >
+            <Terminal className="h-4 w-4" />
+            <span className="hidden md:inline">Import cURL</span>
           </Button>
-        ) : (
-          <Button variant="primary" onClick={() => void send(tabId)}>
-            <Send className="h-4 w-4" /> Send
-          </Button>
-        )}
-        {isLoading && <Loader2 className="h-4 w-4 animate-spin text-orange-400" />}
-        <Button variant="secondary" size="sm" onClick={() => setShowImportCurl(true)} title="Import cURL">
-          <Terminal className="h-4 w-4" /> Import cURL
-        </Button>
+        </div>
       </div>
 
       {resolvedUrl && (
@@ -161,14 +172,14 @@ export function RequestBuilder({ tabId, request, onSave }: RequestBuilderProps) 
         </div>
       )}
 
-      <div className="flex border-b border-zinc-800">
+      <div className="flex shrink-0 overflow-x-auto border-b border-zinc-800">
         {sections.map((s) => (
           <button
             key={s.id}
             onClick={() => setActiveSection(s.id)}
-            className={`px-4 py-2 text-sm transition-colors ${
+            className={`shrink-0 whitespace-nowrap px-3 py-2 text-xs transition-colors sm:px-4 sm:text-sm ${
               activeSection === s.id
-                ? 'text-orange-400 border-b-2 border-orange-400'
+                ? 'border-b-2 border-orange-400 text-orange-400'
                 : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >

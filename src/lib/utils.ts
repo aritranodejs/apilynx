@@ -245,6 +245,34 @@ export function normalizeRequestUrl(url: string): string {
   return `https://${trimmed}`;
 }
 
+/** True when {{VAR}} placeholders remain after substitution. */
+export function hasUnresolvedVariables(text: string): boolean {
+  return /\{\{[^}]+\}\}/.test(text);
+}
+
+export function validateRequestUrl(url: string): { valid: boolean; error?: string } {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return { valid: false, error: 'Enter a request URL before sending' };
+  }
+  if (hasUnresolvedVariables(trimmed)) {
+    return {
+      valid: false,
+      error:
+        'Unresolved variables in URL — set values in Environments or replace {{VAR}} placeholders',
+    };
+  }
+  try {
+    const parsed = new URL(normalizeRequestUrl(trimmed));
+    if (!parsed.hostname) {
+      return { valid: false, error: 'Enter a valid URL with a hostname' };
+    }
+    return { valid: true };
+  } catch {
+    return { valid: false, error: 'Enter a valid URL (e.g. https://api.example.com/users)' };
+  }
+}
+
 export function methodColor(method: HttpMethod): string {
   const colors: Record<HttpMethod, string> = {
     GET: 'text-emerald-400',

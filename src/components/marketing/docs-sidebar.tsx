@@ -10,11 +10,11 @@ export function DocsSidebar() {
   const normalized = pathname.endsWith('/') ? pathname : `${pathname}/`;
 
   return (
-    <aside className="w-full shrink-0 lg:w-56">
+    <aside className="w-full shrink-0 lg:sticky lg:top-20 lg:w-56 lg:self-start">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
         Documentation
       </p>
-      <nav className="mt-4 flex flex-row gap-1 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
+      <nav className="mt-4 -mx-1 flex flex-row gap-1 overflow-x-auto pb-2 lg:mx-0 lg:flex-col lg:overflow-visible lg:pb-0">
         <NavItem href="/docs/" active={normalized === '/docs/'}>
           Overview
         </NavItem>

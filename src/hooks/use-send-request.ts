@@ -16,6 +16,7 @@ import {
   normalizeRequestUrl,
   prepareAuthForRequest,
   substituteVariables,
+  validateRequestUrl,
 } from '@/lib/utils';
 import type { BodyType, KeyValuePair, SendRequestPayload } from '@/types';
 
@@ -75,8 +76,9 @@ export function useSendRequest() {
 
       let url = normalizeRequestUrl(substituteVariables(request.url, vars));
       url = buildUrlWithParams(url, substituteInPairs(request.params, vars));
-      if (!url.trim()) {
-        showError('Enter a request URL before sending');
+      const urlCheck = validateRequestUrl(url);
+      if (!urlCheck.valid) {
+        showError(urlCheck.error ?? 'Enter a request URL before sending');
         return;
       }
       url = applyAuthToUrl(url, auth);
