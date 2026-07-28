@@ -72,8 +72,14 @@ export function MockServerPanel() {
 
   if (!isElectron) {
     return (
-      <div className="p-4 text-sm text-zinc-500">
-        Mock server requires the Apilynx desktop app (Electron).
+      <div className="p-4 text-sm leading-relaxed text-zinc-500">
+        <p>Mock server is only available in the Apilynx desktop app.</p>
+        <a
+          href="/docs/download/"
+          className="mt-2 inline-block text-orange-400 hover:text-orange-300 hover:underline"
+        >
+          Download the desktop app →
+        </a>
       </div>
     );
   }

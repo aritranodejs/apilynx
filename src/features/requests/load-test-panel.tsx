@@ -11,13 +11,18 @@ import { useEnvironmentStore } from '@/stores/environment-store';
 import {
   applyAuthToHeaders,
   applyAuthToUrl,
+  buildUrlWithParams,
   generateId,
   headersFromKeyValues,
   methodAllowsBody,
   normalizeRequestUrl,
   prepareAuthForRequest,
+  substituteVariables,
   validateRequestUrl,
 } from '@/lib/utils';
+import { buildRequestBodyPayload } from '@/lib/request-body';
+import { buildFormDataFromEntries } from '@/lib/form-body';
+import { isElectronApp } from '@/services/ipc';
 import type { SendRequestPayload } from '@/types';
 import { Play, Square } from 'lucide-react';
 import { showError } from '@/stores/toast-store';
@@ -70,17 +75,29 @@ export function LoadTestPanel({ request, resolvedUrl }: LoadTestPanelProps) {
     let url = applyAuthToUrl(resolvedUrl, auth);
     url = normalizeRequestUrl(url);
 
-    const body =
-      methodAllowsBody(request.method) && request.body.content
-        ? request.body.content
-        : undefined;
+    const bodyContent = request.body.content;
+    const built = methodAllowsBody(request.method)
+      ? buildRequestBodyPayload(request.body.type, bodyContent, request.body.formData)
+      : { bodyType: request.body.type };
+    const { body, bodyType, formEntries } = built;
+
+    const payloadHeaders = { ...headers };
+    if (bodyType === 'form-data') {
+      delete payloadHeaders['Content-Type'];
+    }
+
+    let requestBody: SendRequestPayload['body'] = body;
+    if (!isElectronApp() && bodyType === 'form-data' && formEntries?.length) {
+      requestBody = buildFormDataFromEntries(formEntries);
+    }
 
     const payload: SendRequestPayload = {
       method: request.method,
       url,
-      headers,
-      body,
-      bodyType: request.body.type,
+      headers: payloadHeaders,
+      body: requestBody,
+      formEntries,
+      bodyType,
       timeout,
       signalId: generateId(),
     };

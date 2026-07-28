@@ -7,6 +7,8 @@ import {
   substituteVariables,
   applyAuthToHeaders,
   headersFromKeyValues,
+  methodAllowsBody,
+  methodRequiresBody,
   prepareAuthForRequest,
   validateRequestUrl,
 } from '@/lib/utils';
@@ -94,6 +96,24 @@ describe('utils', () => {
       { id: '2', key: 'X-Custom', value: 'test', enabled: true },
     ]);
     expect(headers['X-Custom']).toBe('test');
+  });
+});
+
+describe('methodAllowsBody', () => {
+  it('allows body for QUERY and POST', () => {
+    expect(methodAllowsBody('QUERY')).toBe(true);
+    expect(methodAllowsBody('POST')).toBe(true);
+  });
+
+  it('disallows body for GET', () => {
+    expect(methodAllowsBody('GET')).toBe(false);
+  });
+});
+
+describe('methodRequiresBody', () => {
+  it('requires body only for QUERY', () => {
+    expect(methodRequiresBody('QUERY')).toBe(true);
+    expect(methodRequiresBody('POST')).toBe(false);
   });
 });
 

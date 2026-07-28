@@ -558,6 +558,63 @@ body:has(.apilynx-app-shell) {
   }
 }
 
+.lynx-trust-badge {
+  animation: lynx-tag-float 5s ease-in-out infinite;
+}
+
+.lynx-stat-card {
+  transition: transform 0.35s ease, border-color 0.35s ease, background-color 0.35s ease;
+}
+
+.lynx-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(249, 115, 22, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.lynx-stat-number {
+  display: inline-block;
+  animation: lynx-stat-pop 0.5s ease-out both;
+}
+
+.lynx-workflow-card {
+  transition: transform 0.35s ease;
+}
+
+.lynx-workflow-card:hover {
+  transform: translateY(-4px);
+}
+
+.lynx-why-card {
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.lynx-why-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+.lynx-cta-bg {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(249, 115, 22, 0.12), transparent 60%),
+    linear-gradient(180deg, #0a0b0f 0%, #12141c 100%);
+}
+
+@keyframes lynx-stat-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.lynx-parallax-tilt {
+  transform-style: preserve-3d;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lynx-fade-up,
   .lynx-request-row,

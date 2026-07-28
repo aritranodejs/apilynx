@@ -237,6 +237,11 @@ export function methodAllowsBody(method: HttpMethod): boolean {
   return method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
 }
 
+/** RFC 10008 — QUERY requests must include a body with Content-Type. */
+export function methodRequiresBody(method: HttpMethod): boolean {
+  return method === 'QUERY';
+}
+
 /** Ensure URLs have a protocol so requests work when users omit https:// */
 export function normalizeRequestUrl(url: string): string {
   const trimmed = url.trim();
@@ -276,6 +281,7 @@ export function validateRequestUrl(url: string): { valid: boolean; error?: strin
 export function methodColor(method: HttpMethod): string {
   const colors: Record<HttpMethod, string> = {
     GET: 'text-emerald-400',
+    QUERY: 'text-violet-400',
     POST: 'text-amber-400',
     PUT: 'text-blue-400',
     PATCH: 'text-purple-400',

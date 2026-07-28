@@ -125,7 +125,7 @@ const requestSchema = new Schema(
     description: String,
     method: {
       type: String,
-      enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
+      enum: ['GET', 'QUERY', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
       default: 'GET',
     },
     url: { type: String, default: '' },
@@ -177,7 +177,7 @@ const historySchema = new Schema(
   {
     method: {
       type: String,
-      enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
+      enum: ['GET', 'QUERY', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
       required: true,
     },
     url: { type: String, required: true },

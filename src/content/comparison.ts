@@ -34,6 +34,16 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
     hoppscotch: 'yes',
   },
   {
+    feature: 'HTTP QUERY method (RFC 10008)',
+    apilynx: 'yes',
+    postman: 'no',
+    insomnia: 'no',
+    bruno: 'no',
+    thunder: 'no',
+    hoppscotch: 'no',
+    note: '2026 standard — safe, idempotent queries with a request body',
+  },
+  {
     feature: 'GraphQL queries & variables',
     apilynx: 'yes',
     postman: 'yes',
@@ -41,7 +51,7 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
     bruno: 'yes',
     thunder: 'partial',
     hoppscotch: 'yes',
-    note: 'Apilynx: Body → GraphQL with query + variables editors (POST JSON)',
+    note: 'Apilynx defaults GraphQL to QUERY (RFC 10008) or POST JSON',
   },
   {
     feature: 'Params, headers, JSON / form / raw body',

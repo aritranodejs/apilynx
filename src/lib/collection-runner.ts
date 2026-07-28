@@ -12,6 +12,9 @@ import {
   prepareAuthForRequest,
   substituteVariables,
 } from '@/lib/utils';
+import { buildRequestBodyPayload } from '@/lib/request-body';
+import { buildFormDataFromEntries } from '@/lib/form-body';
+import { isElectronApp } from '@/services/ipc';
 import type { SendRequestPayload } from '@/types';
 
 export async function runCollectionRequests(
@@ -53,22 +56,42 @@ export async function runCollectionRequests(
       )
     );
 
-    let body: string | undefined;
-    if (methodAllowsBody(request.method)) {
-      if (request.body.type === 'graphql') {
-        body = request.body.content;
-        headers['Content-Type'] = headers['Content-Type'] ?? 'application/json';
-      } else if (request.body.content) {
-        body = substituteVariables(request.body.content, variables);
-      }
+    const formPairs = request.body.formData.map((p) => ({
+      ...p,
+      key: substituteVariables(p.key, variables),
+      value: substituteVariables(p.value, variables),
+    }));
+
+    const bodyContent = substituteVariables(request.body.content, variables);
+    const built = methodAllowsBody(request.method)
+      ? buildRequestBodyPayload(request.body.type, bodyContent, formPairs)
+      : { bodyType: request.body.type };
+    const { body, bodyType, formEntries } = built;
+
+    const payloadHeaders = { ...headers };
+    if (bodyType === 'form-data') {
+      delete payloadHeaders['Content-Type'];
+    } else if (
+      (bodyType === 'json' || request.body.type === 'graphql') &&
+      !payloadHeaders['Content-Type']
+    ) {
+      payloadHeaders['Content-Type'] = 'application/json';
+    } else if (bodyType === 'x-www-form-urlencoded' && !payloadHeaders['Content-Type']) {
+      payloadHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+    }
+
+    let requestBody: SendRequestPayload['body'] = body;
+    if (!isElectronApp() && bodyType === 'form-data' && formEntries?.length) {
+      requestBody = buildFormDataFromEntries(formEntries);
     }
 
     const payload: SendRequestPayload = {
       method: request.method,
       url,
-      headers,
-      body,
-      bodyType: request.body.type === 'graphql' ? 'json' : request.body.type,
+      headers: payloadHeaders,
+      body: requestBody,
+      formEntries,
+      bodyType,
       timeout,
       signalId: generateId(),
     };

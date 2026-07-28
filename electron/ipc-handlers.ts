@@ -1,6 +1,6 @@
 import type { IpcMainInvokeEvent } from 'electron';
 import axios, { type AxiosResponse } from 'axios';
-import type { ApiRequest, ApiResponse, AppSettings, Collection, Environment, HistoryEntry, PaginatedResult, SendRequestPayload } from '../src/types';
+import type { ApiRequest, ApiResponse, AppSettings, Collection, Environment, HistoryEntry, PaginatedResult, SendRequestPayload, FormDataEntry } from '../src/types';
 import type {
   AuthResponse,
   ChangePasswordPayload,
@@ -82,6 +82,20 @@ import {
 
 const activeRequests = new Map<string, AbortController>();
 
+function buildNodeFormData(entries: FormDataEntry[]): FormData {
+  const fd = new FormData();
+  for (const entry of entries) {
+    if (entry.type === 'file' && entry.fileData) {
+      const buffer = Buffer.from(entry.fileData, 'base64');
+      const blob = new Blob([buffer], { type: entry.mimeType ?? 'application/octet-stream' });
+      fd.append(entry.key, blob, entry.fileName ?? 'file');
+    } else {
+      fd.append(entry.key, entry.value ?? '');
+    }
+  }
+  return fd;
+}
+
 export async function initializeDatabase(): Promise<void> {
   await connectDatabase();
 }
@@ -118,7 +132,15 @@ export async function handleSendRequest(
 
     const canHaveBody = methodAllowsBody(payload.method);
 
-    if (canHaveBody && payload.body !== undefined && payload.bodyType !== 'form-data') {
+    if (canHaveBody && payload.bodyType === 'form-data' && payload.formEntries?.length) {
+      const formHeaders: Record<string, string> = { ...payload.headers };
+      delete formHeaders['Content-Type'];
+      response = await axios({
+        ...config,
+        headers: formHeaders,
+        data: buildNodeFormData(payload.formEntries),
+      });
+    } else if (canHaveBody && payload.body !== undefined && payload.bodyType !== 'form-data') {
       response = await axios({ ...config, data: payload.body });
     } else if (canHaveBody && payload.bodyType === 'form-data' && payload.body instanceof FormData) {
       const formHeaders: Record<string, string> = { ...payload.headers };

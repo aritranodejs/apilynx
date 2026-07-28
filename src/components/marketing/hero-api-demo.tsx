@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 type Phase = 'typing' | 'sending' | 'response';
 
 type Scenario = {
-  method: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  method: 'GET' | 'QUERY' | 'POST' | 'PATCH' | 'DELETE';
   url: string;
   status: number;
   statusText: string;
@@ -23,6 +23,14 @@ const SCENARIOS: Scenario[] = [
     statusText: 'OK',
     duration: 42,
     body: '{\n  "users": [\n    { "id": 1, "name": "Aritra", "role": "admin" }\n  ]\n}',
+  },
+  {
+    method: 'QUERY',
+    url: 'https://api.apilynx.dev/v1/search',
+    status: 200,
+    statusText: 'OK',
+    duration: 55,
+    body: '{\n  "results": [\n    { "id": "p1", "name": "Widget" }\n  ]\n}',
   },
   {
     method: 'POST',
@@ -50,6 +58,9 @@ const SCENARIOS: Scenario[] = [
   },
 ];
 
+const MAX_BODY_LINES = 5;
+const LOG_SLOTS = 4;
+
 type LogEntry = {
   id: number;
   method: string;
@@ -60,6 +71,7 @@ type LogEntry = {
 
 function methodBadgeClass(method: string) {
   if (method === 'GET') return 'bg-emerald-500/15 text-emerald-400';
+  if (method === 'QUERY') return 'bg-violet-500/15 text-violet-400';
   if (method === 'POST') return 'bg-orange-500/15 text-orange-400';
   if (method === 'PATCH') return 'bg-sky-500/15 text-sky-400';
   return 'bg-rose-500/15 text-rose-400';
@@ -67,6 +79,7 @@ function methodBadgeClass(method: string) {
 
 function methodTextClass(method: string) {
   if (method === 'GET') return 'text-emerald-400';
+  if (method === 'QUERY') return 'text-violet-400';
   if (method === 'POST') return 'text-orange-400';
   if (method === 'PATCH') return 'text-sky-400';
   return 'text-rose-400';
@@ -185,7 +198,7 @@ export function HeroApiDemo({ className }: { className?: string }) {
           status: scenario.status,
           duration: scenario.duration,
         };
-        setLog((prev) => [entry, ...prev].slice(0, 4));
+        setLog((prev) => [entry, ...prev].slice(0, LOG_SLOTS));
       }
 
       const timer = window.setTimeout(() => {
@@ -204,13 +217,19 @@ export function HeroApiDemo({ className }: { className?: string }) {
     displayDuration,
   ]);
 
+  const displayLines = bodyLines.slice(0, visibleBodyLines);
+  const paddedLines = Array.from({ length: MAX_BODY_LINES }, (_, i) => displayLines[i] ?? null);
+
   return (
     <div className={cn('lynx-hero-demo-wrap relative', className)}>
       <div
         className="lynx-hero-demo-glow pointer-events-none absolute -inset-px rounded-xl opacity-60"
         aria-hidden
       />
-      <div className="lynx-hero-demo relative overflow-hidden rounded-xl border border-white/10 bg-[#0c0d12]/95 shadow-2xl shadow-orange-500/10 backdrop-blur-sm">
+      <div
+        className="lynx-hero-demo relative overflow-hidden rounded-xl border border-white/10 bg-[#0c0d12]/95 shadow-2xl shadow-orange-500/10 backdrop-blur-sm"
+        style={{ minHeight: '28rem' }}
+      >
         <div className="lynx-scan-line pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-400/40 to-transparent" aria-hidden />
 
         <div className="flex items-center gap-2 border-b border-white/10 bg-zinc-900/60 px-3 py-2.5 sm:px-4">
@@ -244,11 +263,11 @@ export function HeroApiDemo({ className }: { className?: string }) {
           ))}
         </div>
 
-        <div className="space-y-2 border-b border-white/10 p-3 sm:p-4">
+        <div className="border-b border-white/10 p-3 sm:p-4">
           <div className="flex items-center justify-between gap-2">
             <span
               className={cn(
-                'lynx-method-badge shrink-0 rounded px-2 py-0.5 text-[10px] font-bold tracking-wide transition-all duration-500 sm:text-[11px]',
+                'shrink-0 rounded px-2 py-0.5 text-[10px] font-bold tracking-wide transition-colors duration-300 sm:text-[11px]',
                 methodBadgeClass(scenario.method)
               )}
             >
@@ -259,10 +278,10 @@ export function HeroApiDemo({ className }: { className?: string }) {
               tabIndex={-1}
               aria-hidden
               className={cn(
-                'inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1.5 text-[10px] font-semibold transition-all sm:gap-1.5 sm:px-3 sm:text-xs',
+                'inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1.5 text-[10px] font-semibold transition-colors sm:gap-1.5 sm:px-3 sm:text-xs',
                 phase === 'sending'
-                  ? 'bg-orange-500/80 text-white lynx-send-pulse'
-                  : 'bg-orange-500 text-white hover:bg-orange-400'
+                  ? 'bg-orange-500/80 text-white'
+                  : 'bg-orange-500 text-white'
               )}
             >
               {phase === 'sending' ? (
@@ -276,20 +295,26 @@ export function HeroApiDemo({ className }: { className?: string }) {
 
           <div
             className={cn(
-              'min-w-0 overflow-hidden rounded-md border border-white/5 bg-black/40 px-2.5 py-2',
+              'mt-2 min-w-0 overflow-hidden rounded-md border border-white/5 bg-black/40 px-2.5 py-2',
               phase === 'typing' && 'lynx-url-shimmer'
             )}
           >
             <p className="truncate font-mono text-[10px] text-zinc-300 sm:text-xs">
-              {typedUrl || '\u00A0'}
+              {typedUrl || scenario.url.slice(0, 1)}
               {phase === 'typing' && (
                 <span className="lynx-type-cursor ml-px inline-block h-3 w-0.5 translate-y-0.5 bg-orange-400" />
               )}
             </p>
           </div>
 
-          {phase === 'sending' && (
-            <div className="space-y-1.5">
+          {/* Fixed-height progress slot — prevents layout jump when sending starts */}
+          <div className="mt-2 h-10 overflow-hidden">
+            <div
+              className={cn(
+                'space-y-1.5 transition-opacity duration-200',
+                phase === 'sending' ? 'opacity-100' : 'opacity-0'
+              )}
+            >
               <div className="h-1 overflow-hidden rounded-full bg-zinc-800">
                 <div
                   className="lynx-progress-bar h-full rounded-full bg-gradient-to-r from-orange-600 to-orange-400 transition-[width] duration-75 ease-out"
@@ -305,21 +330,21 @@ export function HeroApiDemo({ className }: { className?: string }) {
                 Sending request…
               </div>
             </div>
-          )}
+          </div>
         </div>
 
-        <div className="min-h-[7.5rem] p-3 sm:min-h-[9rem] sm:p-4">
-          {phase === 'typing' && (
-            <p className="lynx-fade-up text-[11px] text-zinc-600 sm:text-xs">
-              Type a URL and hit Send to test your API…
+        {/* Fixed-height response panel */}
+        <div className="h-[9.5rem] p-3 sm:h-[10rem] sm:p-4">
+          {phase !== 'response' ? (
+            <p className="text-[11px] text-zinc-600 sm:text-xs">
+              {phase === 'typing' ? 'Type a URL and hit Send to test your API…' : 'Waiting for response…'}
             </p>
-          )}
-          {phase === 'response' && (
-            <div className="lynx-response-in space-y-2.5">
+          ) : (
+            <div className="space-y-2.5">
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className={cn(
-                    'lynx-status-pop rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold sm:text-xs',
+                    'rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold sm:text-xs',
                     statusClass(scenario.status)
                   )}
                 >
@@ -330,13 +355,14 @@ export function HeroApiDemo({ className }: { className?: string }) {
                 </span>
               </div>
               {bodyLines.length > 0 ? (
-                <pre className="max-h-28 overflow-x-auto overflow-y-auto rounded-md border border-white/5 bg-black/30 p-2 font-mono text-[9px] leading-relaxed sm:max-h-32 sm:p-2.5 sm:text-[10px]">
-                  {bodyLines.slice(0, visibleBodyLines).map((line, i) => (
+                <pre className="h-[6.5rem] overflow-hidden rounded-md border border-white/5 bg-black/30 p-2 font-mono text-[9px] leading-relaxed sm:p-2.5 sm:text-[10px]">
+                  {paddedLines.map((line, i) => (
                     <div
                       key={`${scenarioIndex}-${i}`}
-                      className="lynx-json-line"
-                      style={{ animationDelay: `${i * 60}ms` }}
-                      dangerouslySetInnerHTML={{ __html: highlightJsonLine(line) }}
+                      className={cn(line === null && 'text-transparent select-none')}
+                      dangerouslySetInnerHTML={{
+                        __html: line ? highlightJsonLine(line) : '&nbsp;',
+                      }}
                     />
                   ))}
                 </pre>
@@ -347,18 +373,29 @@ export function HeroApiDemo({ className }: { className?: string }) {
           )}
         </div>
 
-        {log.length > 0 && (
-          <div className="border-t border-white/10 bg-black/30 px-3 py-3 sm:px-4">
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
-              Recent requests
-            </p>
-            <div className="space-y-1">
-              {log.map((entry, i) => (
+        {/* Fixed-height recent requests log */}
+        <div className="border-t border-white/10 bg-black/30 px-3 py-3 sm:px-4">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+            Recent requests
+          </p>
+          <div className="space-y-1">
+            {Array.from({ length: LOG_SLOTS }, (_, i) => {
+              const entry = log[i];
+              if (!entry) {
+                return (
+                  <div
+                    key={`empty-${i}`}
+                    className="flex h-[1.375rem] items-center font-mono text-[9px] sm:text-[10px]"
+                    aria-hidden
+                  />
+                );
+              }
+              return (
                 <div
                   key={entry.id}
                   className={cn(
-                    'lynx-log-row flex min-w-0 items-center gap-1.5 rounded px-1 py-0.5 font-mono text-[9px] sm:gap-2 sm:text-[10px]',
-                    i === 0 && 'lynx-log-flash bg-orange-500/10'
+                    'flex min-w-0 items-center gap-1.5 rounded px-1 py-0.5 font-mono text-[9px] sm:gap-2 sm:text-[10px]',
+                    i === 0 && log[0]?.id === entry.id && phase === 'response' && 'bg-orange-500/5'
                   )}
                 >
                   <span className={cn('w-9 shrink-0 font-semibold sm:w-10', methodTextClass(entry.method))}>
@@ -370,10 +407,10 @@ export function HeroApiDemo({ className }: { className?: string }) {
                   </span>
                   <span className="w-10 shrink-0 text-right text-zinc-600 sm:w-11">{entry.duration}ms</span>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

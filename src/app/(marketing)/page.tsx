@@ -1,93 +1,48 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { HeroApiDemo } from '@/components/marketing/hero-api-demo';
-import { HeroAmbience } from '@/components/marketing/hero-ambience';
+import { HeroSection } from '@/components/marketing/hero-section';
 import { FeaturePillarsGrid } from '@/components/marketing/animated-grids';
 import { AnimatedComparisonBlock, AnimatedDownloadBlock } from '@/components/marketing/animated-sections';
+import { ParallaxSection } from '@/components/marketing/parallax-section';
+import { CtaBanner, WhySwitchSection, WorkflowSection } from '@/components/marketing/growth-sections';
+import { SITE_URL } from '@/content/downloads';
 import { Reveal } from '@/components/marketing/reveal';
 
 export const metadata: Metadata = {
   title: 'Apilynx — Modern API Client',
   description:
-    'Build, test, and document HTTP APIs. A fast desktop alternative to Postman with collections, environments, and generated docs.',
+    'Build, test, and document HTTP APIs. A fast, free alternative to Postman with collections, environments, GraphQL, mocks, and generated docs.',
+  openGraph: {
+    title: 'Apilynx — The API client your team actually wants to use',
+    description:
+      'Free API testing for REST & GraphQL. Download for desktop or try in browser — no account required.',
+    url: SITE_URL,
+    siteName: 'Apilynx',
+    type: 'website',
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Apilynx — Modern API Client' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Apilynx — Modern API Client',
+    description: 'Free Postman alternative. Test APIs in browser or desktop app.',
+    images: ['/og.png'],
+  },
+  keywords: [
+    'API client',
+    'Postman alternative',
+    'REST client',
+    'GraphQL',
+    'API testing',
+    'Apilynx',
+  ],
 };
-
-const HERO_TAGS = ['REST & GraphQL', 'Collections', 'Environments', 'Mock server', 'Load tests'];
 
 export default function LandingPage() {
   return (
     <>
-      <section className="relative isolate min-h-[calc(100vh-4rem)] overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 lynx-hero-bg" aria-hidden />
-        <div
-          className="pointer-events-none absolute inset-0 lynx-hero-grid opacity-[0.35]"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -right-24 top-1/4 h-[70vh] w-[70vw] max-w-3xl lynx-hero-glow lg:right-0 lg:w-[45%]"
-          aria-hidden
-        />
-        <HeroAmbience />
+      <HeroSection />
 
-        <div className="relative z-10 mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl grid-cols-1 items-center gap-10 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-2 lg:gap-10 xl:gap-16">
-          <div className="min-w-0">
-            <p className="lynx-fade-up lynx-text-shimmer font-[family-name:var(--font-display)] text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl">
-              Apilynx
-            </p>
-            <h1 className="lynx-fade-up mt-4 text-balance text-xl font-medium leading-snug tracking-tight text-zinc-200 sm:mt-5 sm:text-2xl md:text-3xl [animation-delay:80ms]">
-              The API client your team actually wants to use.
-            </h1>
-            <p className="lynx-fade-up mt-4 max-w-prose text-base leading-relaxed text-zinc-400 [animation-delay:160ms]">
-              Test endpoints, organize collections, and publish docs — download once and get to
-              work. No terminal required.
-            </p>
-
-            <div className="lynx-fade-up mt-5 flex flex-wrap gap-2 [animation-delay:200ms]">
-              {HERO_TAGS.map((tag, i) => (
-                <span
-                  key={tag}
-                  className="lynx-tag-float rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-medium text-zinc-500 sm:text-xs"
-                  style={{ animationDelay: `${i * 0.4}s` }}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            <div className="lynx-fade-up mt-9 flex flex-wrap items-center gap-3 [animation-delay:240ms]">
-              <a
-                href="#download"
-                className="lynx-cta-primary inline-flex items-center justify-center rounded-md bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-400"
-              >
-                Download free
-              </a>
-              <Link
-                href="/docs/"
-                className="inline-flex items-center justify-center rounded-md border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-zinc-100 transition hover:border-orange-500/40 hover:bg-orange-500/10"
-              >
-                How it works
-              </Link>
-              <Link
-                href="/app/"
-                className="inline-flex items-center justify-center px-3 py-2.5 text-sm font-medium text-zinc-400 transition hover:text-orange-400"
-              >
-                Try in browser →
-              </Link>
-            </div>
-
-            <div className="lynx-fade-up mt-10 lg:hidden [animation-delay:320ms]">
-              <HeroApiDemo />
-            </div>
-          </div>
-
-          <Reveal direction="scale" delay={200} className="hidden min-w-0 lg:block">
-            <HeroApiDemo />
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="lynx-section relative border-t border-white/5 bg-[#07080c]">
-        <div className="lynx-section-line absolute inset-x-0 top-0 h-px" aria-hidden />
+      <ParallaxSection className="border-t border-white/5 bg-[#07080c]" speed={0.35}>
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
           <Reveal>
             <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-white sm:text-3xl md:text-4xl">
@@ -99,6 +54,7 @@ export default function LandingPage() {
             </p>
           </Reveal>
           <FeaturePillarsGrid />
+          <WhySwitchSection />
           <Reveal delay={200} className="mt-10 text-sm text-zinc-500">
             Prefer a guided tour?{' '}
             <Link href="/docs/examples/" className="text-orange-400 hover:underline">
@@ -110,10 +66,11 @@ export default function LandingPage() {
             </Link>
           </Reveal>
         </div>
-      </section>
+      </ParallaxSection>
 
-      <section className="lynx-section relative border-t border-white/5 bg-[#0a0b0f]">
-        <div className="lynx-section-line absolute inset-x-0 top-0 h-px" aria-hidden />
+      <WorkflowSection />
+
+      <ParallaxSection className="border-t border-white/5 bg-[#0a0b0f]" speed={0.28}>
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
           <Reveal>
             <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-white sm:text-3xl">
@@ -135,13 +92,13 @@ export default function LandingPage() {
             </Link>
           </Reveal>
         </div>
-      </section>
+      </ParallaxSection>
 
-      <section
+      <ParallaxSection
         id="download"
-        className="lynx-section relative border-t border-white/5 bg-gradient-to-b from-[#0a0b0f] to-[#12141c]"
+        className="border-t border-white/5 bg-gradient-to-b from-[#0a0b0f] to-[#12141c]"
+        speed={0.22}
       >
-        <div className="lynx-section-line absolute inset-x-0 top-0 h-px" aria-hidden />
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
           <Reveal>
             <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-white sm:text-3xl">
@@ -163,7 +120,9 @@ export default function LandingPage() {
             </Link>
           </Reveal>
         </div>
-      </section>
+      </ParallaxSection>
+
+      <CtaBanner />
     </>
   );
 }

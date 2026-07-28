@@ -194,6 +194,113 @@ export const DOC_SECTIONS: DocSection[] = [
     ],
   },
   {
+    slug: 'why-apilynx-vs-postman',
+    title: 'Why Apilynx vs Postman',
+    description:
+      'A practical comparison for teams choosing an API client — pricing, workflows, GraphQL, mocks, and when to pick each tool.',
+    body: [
+      {
+        paragraphs: [
+          'Postman is the default API client for millions of developers. Apilynx targets the same job — send REST and GraphQL requests, organize collections, switch environments, run tests, and share docs — with a lighter footprint and no mandatory cloud account.',
+          'This article is not a dunk on Postman. It is an honest guide for teams asking: should we switch, stay, or run both?',
+        ],
+      },
+      {
+        heading: 'The short answer',
+        paragraphs: [
+          'Choose Apilynx if you want a focused desktop + browser client, free core testing, REST and GraphQL in one builder, HTML docs export, mocks, and load tests without signing into a cloud workspace first.',
+          'Stay on Postman if your company standardizes on Postman Cloud, you rely on monitors, private API networks, or deep enterprise governance that only Postman provides today.',
+        ],
+        callout:
+          'Many teams use Apilynx for day-to-day calls and keep Postman for org-wide collections. Migration is easy: paste cURL or rebuild collections in minutes.',
+      },
+      {
+        heading: 'Side-by-side at a glance',
+        paragraphs: [],
+        table: {
+          headers: ['Topic', 'Apilynx', 'Postman'],
+          rows: [
+            ['REST HTTP', 'Yes — full method set', 'Yes'],
+            ['GraphQL', 'Query + variables editors', 'Yes'],
+            ['Desktop app', 'Windows, macOS, Linux', 'Yes'],
+            ['Browser / no install', 'Yes — /app', 'Limited (web client)'],
+            ['Account to send requests', 'Optional — browser works without signup', 'Often required for cloud sync'],
+            ['Collections', 'Workspaces + JSON export', 'Cloud workspaces + sharing'],
+            ['Environments', '{{variables}}', '{{variables}}'],
+            ['Tests on responses', 'Status, body, headers', 'Tests tab + scripts'],
+            ['Collection runner', 'Yes', 'Yes'],
+            ['Load testing', 'Built-in panel', 'Separate / paid tiers'],
+            ['Mock server', 'Yes', 'Yes'],
+            ['Docs export', 'HTML generation', 'Strong publishing + hosted docs'],
+            ['Code generation', 'cURL, fetch, axios, etc.', 'Wide language support'],
+            ['Pricing for core testing', 'Free', 'Free tier + paid team plans'],
+            ['Open source', 'MIT', 'Proprietary'],
+          ],
+        },
+      },
+      {
+        heading: 'Where Apilynx wins',
+        paragraphs: [],
+        list: [
+          'Instant browser access — open /app and send a GET without creating an account',
+          'Single app for REST + GraphQL without switching tools',
+          'Load tests in the same UI as your request builder',
+          'MIT license — inspect, fork, and contribute without license anxiety',
+          'Desktop builds without browser CORS limits',
+          'Honest, readable comparison docs (including this page)',
+        ],
+      },
+      {
+        heading: 'Where Postman still leads',
+        paragraphs: [],
+        list: [
+          'Enterprise admin, SSO, and org-wide policy at scale',
+          'Hosted API documentation with custom domains on Postman Cloud',
+          'Monitors and scheduled runs in the cloud',
+          'Massive ecosystem and “everyone already has it” network effect',
+          'Private API Network and API Builder workflows for large API programs',
+        ],
+      },
+      {
+        heading: 'Workflow comparison',
+        paragraphs: [
+          'Day-to-day request flow is nearly identical: pick method, URL, headers, body, auth, Send, inspect response. Apilynx mirrors the Postman-style layout so muscle memory transfers.',
+          'Environments work the same way: define BASE_URL, TOKEN, and other keys; reference them as {{BASE_URL}} in URLs and headers. Switching environments re-runs the same request against staging or production.',
+          'Collections in Apilynx live in workspaces you control. Export JSON when you need backups or to share with teammates. Postman’s advantage is real-time cloud sync across a large org — if that is your primary need, Postman Cloud still wins.',
+        ],
+      },
+      {
+        heading: 'Migration in 15 minutes',
+        paragraphs: [],
+        list: [
+          'From Postman: copy any request as cURL → Apilynx → Import cURL',
+          'Recreate environments with the same variable names (BASE_URL, API_KEY, etc.)',
+          'For GraphQL: Body → GraphQL, paste query and variables JSON',
+          'Save into a collection and run the collection runner to verify a smoke suite',
+          'Generate HTML docs from the collection for stakeholders who do not use an API client',
+        ],
+      },
+      {
+        heading: 'Who should try Apilynx this week?',
+        paragraphs: [],
+        list: [
+          'Solo devs tired of signup walls before the first request',
+          'Startups that want MIT-licensed tooling',
+          'Teams comparing Insomnia, Bruno, and Postman side by side',
+          'Anyone who needs load tests without another SaaS subscription',
+          'Developers who want desktop + browser parity',
+        ],
+      },
+      {
+        heading: 'Try it now',
+        paragraphs: [
+          'Download Apilynx for your OS or open the browser client. Send a request to a public API (e.g. GET https://api.github.com/users/octocat), save it to a collection, and compare the flow to your current Postman workspace.',
+          'Read the full feature matrix on the Compare page, or follow Getting Started for a guided first run.',
+        ],
+      },
+    ],
+  },
+  {
     slug: 'graphql',
     title: 'GraphQL',
     description: 'Test GraphQL APIs with query + variables editors — like Postman and Insomnia.',
@@ -207,7 +314,7 @@ export const DOC_SECTIONS: DocSection[] = [
         heading: 'Quick start',
         paragraphs: [],
         list: [
-          'Create a request and set method to POST (Apilynx auto-switches from GET when you pick GraphQL)',
+          'Create a request and set method to QUERY or POST (Apilynx auto-switches to QUERY when you pick GraphQL from GET)',
           'Set URL to your endpoint, e.g. {{BASE_URL}}/graphql',
           'Open Body → choose GraphQL',
           'Write the query on the left/top editor and variables as JSON below',
@@ -473,6 +580,7 @@ const data = await res.json();`,
           headers: ['Method', 'Typical use'],
           rows: [
             ['GET', 'Read data (list users, fetch one item)'],
+            ['QUERY', 'Complex read-only queries with a body (RFC 10008, June 2026)'],
             ['POST', 'Create resource or submit a form/JSON'],
             ['PUT', 'Replace a resource'],
             ['PATCH', 'Partial update'],
@@ -509,7 +617,7 @@ const data = await res.json();`,
         list: [
           'JSON — Monaco editor with highlighting, pretty, minify (great for REST APIs)',
           'Raw — plain text or XML',
-          'Form Data — multipart fields',
+          'Form Data — multipart text fields and file uploads (images, PDF, JSON, etc.)',
           'x-www-form-urlencoded — classic form posts / some OAuth token endpoints',
         ],
       },

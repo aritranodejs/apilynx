@@ -1,5 +1,6 @@
 export type HttpMethod =
   | 'GET'
+  | 'QUERY'
   | 'POST'
   | 'PUT'
   | 'PATCH'
@@ -13,11 +14,28 @@ export type AuthType = 'inherit' | 'none' | 'bearer' | 'basic' | 'api-key';
 
 export type ThemeMode = 'dark' | 'light' | 'system';
 
+export type FormFieldType = 'text' | 'file';
+
 export interface KeyValuePair {
   id: string;
   key: string;
   value: string;
   enabled: boolean;
+  /** Multipart form field type (form-data body only). */
+  fieldType?: FormFieldType;
+  fileName?: string;
+  mimeType?: string;
+  /** Base64 file payload for persistence and IPC transport. */
+  fileData?: string;
+}
+
+export interface FormDataEntry {
+  key: string;
+  type: FormFieldType;
+  value?: string;
+  fileName?: string;
+  mimeType?: string;
+  fileData?: string;
 }
 
 export interface AuthConfig {
@@ -145,6 +163,7 @@ export interface SendRequestPayload {
   url: string;
   headers: Record<string, string>;
   body?: string | FormData;
+  formEntries?: FormDataEntry[];
   bodyType: BodyType;
   timeout: number;
   signalId: string;

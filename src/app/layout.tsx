@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { DM_Sans, Geist_Mono, Syne } from 'next/font/google';
 import { Providers } from '@/components/providers';
-import { APP_NAME } from '@/content/downloads';
+import { APP_NAME, SITE_URL } from '@/content/downloads';
 import './globals.css';
 
 const display = Syne({
@@ -22,6 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: APP_NAME,
   description: 'Modern API testing desktop application by Aritra Dutta',
   icons: { icon: process.env.ELECTRON_BUILD === '1' ? './icon.png' : '/icon.png' },

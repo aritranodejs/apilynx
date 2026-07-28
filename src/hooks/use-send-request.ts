@@ -4,7 +4,7 @@ import { useCallback, useRef } from 'react';
 import { useTabsStore } from '@/stores/tabs-store';
 import { useEnvironmentStore } from '@/stores/environment-store';
 import { useSettingsStore } from '@/stores/settings-store';
-import { httpService, historyService, requestService, collectionService } from '@/services/ipc';
+import { httpService, historyService, requestService, collectionService, isElectronApp } from '@/services/ipc';
 import { showError } from '@/stores/toast-store';
 import {
   applyAuthToHeaders,
@@ -16,9 +16,12 @@ import {
   normalizeRequestUrl,
   prepareAuthForRequest,
   substituteVariables,
+  methodRequiresBody,
   validateRequestUrl,
 } from '@/lib/utils';
-import type { BodyType, KeyValuePair, SendRequestPayload } from '@/types';
+import { buildRequestBodyPayload } from '@/lib/request-body';
+import { buildFormDataFromEntries } from '@/lib/form-body';
+import type { KeyValuePair, SendRequestPayload } from '@/types';
 
 function substituteInPairs(pairs: KeyValuePair[], vars: Record<string, string>): KeyValuePair[] {
   return pairs.map((p) => ({
@@ -26,30 +29,6 @@ function substituteInPairs(pairs: KeyValuePair[], vars: Record<string, string>):
     key: substituteVariables(p.key, vars),
     value: substituteVariables(p.value, vars),
   }));
-}
-
-function buildRequestBody(
-  bodyType: BodyType,
-  content: string,
-  formData: KeyValuePair[]
-): { body?: string; bodyType: BodyType } {
-  switch (bodyType) {
-    case 'json':
-    case 'raw':
-    case 'graphql':
-      return { body: content, bodyType: bodyType === 'graphql' ? 'json' : bodyType };
-    case 'x-www-form-urlencoded': {
-      const params = new URLSearchParams();
-      formData
-        .filter((p) => p.enabled && p.key.trim())
-        .forEach((p) => params.set(p.key.trim(), p.value));
-      return { body: params.toString(), bodyType: 'x-www-form-urlencoded' };
-    }
-    case 'form-data':
-      return { bodyType: 'form-data' };
-    default:
-      return { bodyType };
-  }
 }
 
 export function useSendRequest() {
@@ -89,7 +68,12 @@ export function useSendRequest() {
       );
 
       if (methodAllowsBody(request.method)) {
-        if ((request.body.type === 'json' || request.body.type === 'graphql') && !headers['Content-Type']) {
+        if (
+          (request.body.type === 'json' ||
+            request.body.type === 'graphql' ||
+            request.method === 'QUERY') &&
+          !headers['Content-Type']
+        ) {
           headers['Content-Type'] = 'application/json';
         }
         if (request.body.type === 'x-www-form-urlencoded' && !headers['Content-Type']) {
@@ -97,12 +81,33 @@ export function useSendRequest() {
         }
       }
 
+      if (methodRequiresBody(request.method)) {
+        const hasTextBody = Boolean(request.body.content?.trim());
+        const hasFormBody = request.body.formData.some(
+          (p) => p.enabled && p.key.trim() && (p.value.trim() || p.fileData)
+        );
+        if (!hasTextBody && !hasFormBody) {
+          showError('QUERY requests require a request body (RFC 10008)');
+          return;
+        }
+      }
+
       const bodyContent = substituteVariables(request.body.content, vars);
       const formPairs = substituteInPairs(request.body.formData, vars);
       const built = methodAllowsBody(request.method)
-        ? buildRequestBody(request.body.type, bodyContent, formPairs)
-        : { bodyType: request.body.type as BodyType };
-      const { body, bodyType } = built;
+        ? buildRequestBodyPayload(request.body.type, bodyContent, formPairs)
+        : { bodyType: request.body.type };
+      const { body, bodyType, formEntries } = built;
+
+      const payloadHeaders = { ...headers };
+      if (bodyType === 'form-data') {
+        delete payloadHeaders['Content-Type'];
+      }
+
+      let requestBody: SendRequestPayload['body'] = body;
+      if (!isElectronApp() && bodyType === 'form-data' && formEntries?.length) {
+        requestBody = buildFormDataFromEntries(formEntries);
+      }
 
       const signalId = generateId();
       signalRef.current = signalId;
@@ -113,8 +118,9 @@ export function useSendRequest() {
       const payload: SendRequestPayload = {
         method: request.method,
         url,
-        headers,
-        body,
+        headers: payloadHeaders,
+        body: requestBody,
+        formEntries,
         bodyType,
         timeout,
         signalId,

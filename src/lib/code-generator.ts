@@ -1,9 +1,19 @@
 import type { ApiRequest, CodeLanguage } from '@/types';
-import { buildUrlWithParams, headersFromKeyValues } from '@/lib/utils';
+import { buildUrlWithParams, headersFromKeyValues, methodAllowsBody } from '@/lib/utils';
 
 interface GenerateOptions {
   request: ApiRequest;
   resolvedUrl: string;
+}
+
+function requestHasSendableBody(request: ApiRequest): boolean {
+  if (!methodAllowsBody(request.method)) return false;
+  if (request.body.type === 'form-data' || request.body.type === 'x-www-form-urlencoded') {
+    return request.body.formData.some(
+      (p) => p.enabled && p.key.trim() && (p.value.trim() || p.fileData)
+    );
+  }
+  return Boolean(request.body.content?.trim());
 }
 
 function escapeSingleQuote(str: string): string {
@@ -17,25 +27,26 @@ function escapeDoubleQuote(str: string): string {
 export function generateCode(language: CodeLanguage, options: GenerateOptions): string {
   const { request, resolvedUrl } = options;
   const headers = headersFromKeyValues(request.headers);
-  const hasBody = ['POST', 'PUT', 'PATCH'].includes(request.method) && request.body.content;
+  const hasBody = requestHasSendableBody(request);
+  const bodyContent = hasBody ? request.body.content : undefined;
 
   switch (language) {
     case 'javascript-fetch':
-      return generateFetch(resolvedUrl, request.method, headers, hasBody ? request.body.content : undefined);
+      return generateFetch(resolvedUrl, request.method, headers, bodyContent);
     case 'axios':
-      return generateAxios(resolvedUrl, request.method, headers, hasBody ? request.body.content : undefined);
+      return generateAxios(resolvedUrl, request.method, headers, bodyContent);
     case 'nodejs':
-      return generateNodeFetch(resolvedUrl, request.method, headers, hasBody ? request.body.content : undefined);
+      return generateNodeFetch(resolvedUrl, request.method, headers, bodyContent);
     case 'curl':
-      return generateCurl(resolvedUrl, request.method, headers, hasBody ? request.body.content : undefined);
+      return generateCurl(resolvedUrl, request.method, headers, bodyContent);
     case 'php-curl':
-      return generatePhpCurl(resolvedUrl, request.method, headers, hasBody ? request.body.content : undefined);
+      return generatePhpCurl(resolvedUrl, request.method, headers, bodyContent);
     case 'laravel':
-      return generateLaravel(resolvedUrl, request.method, headers, hasBody ? request.body.content : undefined);
+      return generateLaravel(resolvedUrl, request.method, headers, bodyContent);
     case 'python':
-      return generatePython(resolvedUrl, request.method, headers, hasBody ? request.body.content : undefined);
+      return generatePython(resolvedUrl, request.method, headers, bodyContent);
     case 'java-okhttp':
-      return generateJavaOkHttp(resolvedUrl, request.method, headers, hasBody ? request.body.content : undefined);
+      return generateJavaOkHttp(resolvedUrl, request.method, headers, bodyContent);
     default:
       return '';
   }

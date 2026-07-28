@@ -39,6 +39,12 @@ export default function DocsOverviewPage() {
           Examples cookbook
         </Link>
         <Link
+          href="/docs/why-apilynx-vs-postman/"
+          className="inline-flex items-center rounded-md border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-semibold text-orange-200 transition hover:border-orange-500/50 hover:bg-orange-500/15"
+        >
+          Why Apilynx vs Postman
+        </Link>
+        <Link
           href="/docs/compare/"
           className="inline-flex items-center rounded-md border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-zinc-100 transition hover:border-orange-500/40 hover:bg-orange-500/10"
         >

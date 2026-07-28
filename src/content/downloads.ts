@@ -1,7 +1,7 @@
 import { env, envBool, joinUrl } from '@/lib/env';
 
 export const APP_NAME = env('NEXT_PUBLIC_APP_NAME', 'Apilynx');
-export const APP_VERSION = env('NEXT_PUBLIC_APP_VERSION', '1.0.0');
+export const APP_VERSION = env('NEXT_PUBLIC_APP_VERSION', '1.0.1');
 export const SITE_URL = env('NEXT_PUBLIC_SITE_URL', 'http://localhost:3000');
 export const GITHUB_REPO = env('NEXT_PUBLIC_GITHUB_REPO', 'aritranodejs/apilynx');
 

@@ -23,13 +23,14 @@ import type {
   User,
 } from '@/types/auth';
 import type { ElectronAPI } from '@/types/electron-api';
+import { buildFormDataFromEntries } from '@/lib/form-body';
 import { createEmptyKeyValue, generateId, methodAllowsBody, normalizeRequestUrl, validateRequestUrl } from '@/lib/utils';
 
 function getAPI(): ElectronAPI {
   if (typeof window !== 'undefined' && window.electronAPI) {
     return window.electronAPI;
   }
-  throw new Error('Electron API not available. Run Apilynx as a desktop application.');
+  throw new Error('This feature requires the Apilynx desktop app.');
 }
 
 // --- localStorage-backed mock for browser-only dev ---
@@ -138,16 +139,24 @@ const mockAPI: ElectronAPI = {
       };
     }
     const canHaveBody = methodAllowsBody(payload.method);
-    const reqBody =
-      canHaveBody && typeof payload.body === 'string' && payload.body.length > 0
-        ? payload.body
-        : undefined;
+    let fetchBody: BodyInit | undefined;
+    let fetchHeaders = { ...payload.headers };
+
+    if (canHaveBody && payload.bodyType === 'form-data' && payload.formEntries?.length) {
+      fetchBody = buildFormDataFromEntries(payload.formEntries);
+      delete fetchHeaders['Content-Type'];
+    } else if (canHaveBody && typeof payload.body === 'string' && payload.body.length > 0) {
+      fetchBody = payload.body;
+    } else if (canHaveBody && payload.body instanceof FormData) {
+      fetchBody = payload.body;
+      delete fetchHeaders['Content-Type'];
+    }
 
     try {
       const res = await fetch(url, {
         method: payload.method,
-        headers: payload.headers,
-        ...(reqBody !== undefined ? { body: reqBody } : {}),
+        headers: fetchHeaders,
+        ...(fetchBody !== undefined ? { body: fetchBody } : {}),
         signal: AbortSignal.timeout(payload.timeout),
       });
       const responseText = await res.text();
@@ -765,7 +774,7 @@ const mockAPI: ElectronAPI = {
   getVersion: async () => '0.1.0',
   getPlatform: async () => 'web',
   startMockServer: async () => {
-    throw new Error('Mock server requires Electron desktop app');
+    throw new Error('Mock server is only available in the Apilynx desktop app.');
   },
   stopMockServer: async () => {},
   getMockServerStatus: async () => ({ running: false, port: 0 }),

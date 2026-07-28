@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import type { BodyType, RequestBody } from '@/types';
 import { CodeEditor } from '@/components/ui/code-editor';
 import { KeyValueEditor } from '@/components/ui/key-value-editor';
+import { FormDataEditor } from '@/features/requests/form-data-editor';
 import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { isValidJson, minifyJson, prettyJson } from '@/lib/utils';
@@ -130,7 +131,7 @@ export function BodyEditor({ body, onChange }: BodyEditorProps) {
         )}
         {body.type === 'graphql' && (
           <p className="ml-auto text-[11px] text-zinc-500 hidden sm:block">
-            Sent as POST JSON · {'{ query, variables }'}
+            Sent as QUERY or POST JSON · {'{ query, variables }'} · RFC 10008
           </p>
         )}
       </div>
@@ -188,7 +189,14 @@ export function BodyEditor({ body, onChange }: BodyEditorProps) {
           </>
         )}
 
-        {(body.type === 'form-data' || body.type === 'x-www-form-urlencoded') && (
+        {(body.type === 'form-data') && (
+          <FormDataEditor
+            pairs={body.formData}
+            onChange={(formData) => onChange({ ...body, formData })}
+          />
+        )}
+
+        {body.type === 'x-www-form-urlencoded' && (
           <KeyValueEditor
             pairs={body.formData}
             onChange={(formData) => onChange({ ...body, formData })}

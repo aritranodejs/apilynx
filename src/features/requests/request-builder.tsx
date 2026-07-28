@@ -22,7 +22,16 @@ import { showError, showSuccess } from '@/stores/toast-store';
 import { Loader2, Send, Square, Terminal } from 'lucide-react';
 import { useTabsStore } from '@/stores/tabs-store';
 
-const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+const HTTP_METHODS: HttpMethod[] = [
+  'GET',
+  'QUERY',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+  'HEAD',
+  'OPTIONS',
+];
 
 const HEADER_SUGGESTIONS = [
   { key: 'Content-Type', value: 'application/json' },
@@ -212,14 +221,14 @@ export function RequestBuilder({ tabId, request, onSave }: RequestBuilderProps) 
           <BodyEditor
             body={request.body}
             onChange={(body) => {
-              const shouldPost =
+              const needsBodyMethod =
                 body.type === 'graphql' &&
                 (request.method === 'GET' ||
                   request.method === 'HEAD' ||
                   request.method === 'OPTIONS');
               update({
                 body,
-                ...(shouldPost ? { method: 'POST' as const } : {}),
+                ...(needsBodyMethod ? { method: 'QUERY' as const } : {}),
               });
             }}
           />
